@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -16,22 +17,31 @@ export class UsersService {
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const user: User = this.userRepository.create(createUserDto);
+    const user: User = new User();
+    user.firstName = createUserDto.firstName;
+    user.lastName = createUserDto.lastName;
+    user.email = createUserDto.email;
+    const saltOrRounds = 10;
+    const password = createUserDto.password;
+    const hashPassword = await bcrypt.hash(password, saltOrRounds);
+    user.password = hashPassword;
     return await this.userRepository.save(user);
   }
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return await this.userRepository.find();
   }
 
   async findOne(id: number) {
-    return this.userRepository.findOne({ where: { id } });
+    let user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      return 'User was not found';
+    } else return user;
   }
 
   async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const userToUpdate: User = await this.userRepository.findOne({
       where: { id },
     });
-
     if (!userToUpdate) {
       throw new Error('User not found');
     }
@@ -43,7 +53,14 @@ export class UsersService {
     return await this.userRepository.save(userToUpdate);
   }
 
-  deleteUser(id: number) {
-    return this.userRepository.delete(id);
+  async deleteUser(id: number) {
+    let user = await this.userRepository.findOne({ where: { id } });
+    console.log(user);
+    if (!user) {
+      return 'User was not found';
+    } else {
+      this.userRepository.delete(id);
+      return 'User successfully deleted';
+    }
   }
 }
