@@ -12,6 +12,6 @@ export class AuthService {
   ) {}
 
   generateToken(payload: CreateUserDto): string {
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(JSON.parse(JSON.stringify(payload)));
   }
 }
