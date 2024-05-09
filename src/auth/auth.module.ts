@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { UserModule } from 'src/user/user.module';
+import { UsersModule } from 'src/users/users.module';
 import { LocalStrategy } from './local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
@@ -9,7 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 
 
 @Module({
-  imports: [PassportModule, UserModule, 
+  imports: [PassportModule, UsersModule, 
     ConfigModule.forRoot({
       envFilePath: '.local.env',
       isGlobal : true,
