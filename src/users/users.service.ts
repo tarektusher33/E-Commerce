@@ -13,19 +13,28 @@ export class UsersService {
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { email } });
+    let user = await this.userRepository.findOne({ where: { email } });
+    console.log(user);
+    return user;
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const user: User = new User();
-    user.firstName = createUserDto.firstName;
-    user.lastName = createUserDto.lastName;
-    user.email = createUserDto.email;
-    const saltOrRounds = 10;
-    const password = createUserDto.password;
-    const hashPassword = await bcrypt.hash(password, saltOrRounds);
-    user.password = hashPassword;
-    return await this.userRepository.save(user);
+  async createUser(createUserDto: CreateUserDto): Promise<User | string> {
+    let email = createUserDto.email;
+    let temporaryUser = await this.userRepository.findOne({ where: { email } });
+
+    if (temporaryUser) {
+      return 'Sorry, this email has already been registered.';
+    } else {
+      const user: User = new User();
+      user.firstName = createUserDto.firstName;
+      user.lastName = createUserDto.lastName;
+      user.email = createUserDto.email;
+      const salt = 10;
+      const password = createUserDto.password;
+      const hashPassword = await bcrypt.hash(password, salt);
+      user.password = hashPassword;
+      return await this.userRepository.save(user);
+    }
   }
   async findAll(): Promise<User[]> {
     return await this.userRepository.find();

@@ -7,7 +7,7 @@ export class AppController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/login')
-  @UseGuards(AuthGuard('local'))
+  //@UseGuards(AuthGuard('local'))
   login(@Request() req): string {
     const token = this.authService.generateToken(req.user);
     return `Access Token: ${token}`;
