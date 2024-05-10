@@ -50,7 +50,7 @@ export class UsersService {
   async findOne(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      return 'User was not found';
+      throw new Error('User not found');
     } else return user;
   }
 
@@ -71,9 +71,8 @@ export class UsersService {
 
   async deleteUser(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
-    console.log(user);
     if (!user) {
-      return 'User was not found';
+      throw new Error('User not found');
     } else {
       this.userRepository.delete(id);
       return 'User successfully deleted';
