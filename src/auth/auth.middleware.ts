@@ -15,9 +15,21 @@ export class AuthMiddleware implements NestMiddleware {
         try {
             const payload = this.jwtService.verify(token);
             req['user'] = payload;
-            next();
+            const role = payload.role;
+            if(role == 'admin'){
+                next();
+            }
+            else if(role == 'user'){
+                const method = req.method;
+                if(method == 'GET'){
+                    next();
+                }
+                else{
+                     throw new UnauthorizedException('You do not have permission to perform this action.');
+                }
+            }
         } catch (error) {
-            throw new UnauthorizedException('Invalid Token');
+            throw new UnauthorizedException('Invalid token OR You do not have permission to perform this action.');
         }
     }
 }
