@@ -1,4 +1,10 @@
-import { Inject, Injectable, Request, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Request,
+  UnauthorizedException,
+  forwardRef,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -26,7 +32,6 @@ export class UsersService {
   ): Promise<User | string> {
     let email = createUserDto.email;
     let temporaryUser = await this.userRepository.findOne({ where: { email } });
-
     if (temporaryUser) {
       return 'Sorry, this email has already been registered.';
     } else {
@@ -39,10 +44,10 @@ export class UsersService {
       const hashPassword = await bcrypt.hash(password, salt);
       user.password = hashPassword;
       await this.userRepository.save(user);
-      const token = this.authService.generateToken(req.user);
-      return `Access Token: ${token}`;
+      return user;
     }
   }
+
   async findAll(): Promise<User[]> {
     return await this.userRepository.find();
   }
@@ -50,32 +55,35 @@ export class UsersService {
   async findOne(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      return 'User was not found';
+      throw new UnauthorizedException('User not found');
     } else return user;
   }
 
   async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const userToUpdate: User = await this.userRepository.findOne({
+    console.log(id);
+    let userToUpdate: User = await this.userRepository.findOne({
       where: { id },
     });
     if (!userToUpdate) {
-      throw new Error('User not found');
+      throw new UnauthorizedException('User not found');
     }
     userToUpdate.firstName = updateUserDto.firstName;
     userToUpdate.lastName = updateUserDto.lastName;
     userToUpdate.email = updateUserDto.email;
-    userToUpdate.password = updateUserDto.password;
-    userToUpdate.id = updateUserDto.id;
-    return await this.userRepository.save(userToUpdate);
+    const salt = 10;
+    const password = updateUserDto.password;
+    const hashPassword = await bcrypt.hash(password, salt);
+    userToUpdate.password = hashPassword;
+    const updatedUser = await this.userRepository.save(userToUpdate);
+    return updatedUser;
   }
 
   async deleteUser(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
-    console.log(user);
     if (!user) {
-      return 'User was not found';
+      throw new UnauthorizedException('User not found');
     } else {
-      this.userRepository.delete(id);
+      await this.userRepository.delete(id);
       return 'User successfully deleted';
     }
   }
