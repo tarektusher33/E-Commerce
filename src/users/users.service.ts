@@ -43,6 +43,7 @@ export class UsersService {
       const password = createUserDto.password;
       const hashPassword = await bcrypt.hash(password, salt);
       user.password = hashPassword;
+      user.role = createUserDto.role;
       await this.userRepository.save(user);
       return user;
     }
@@ -74,10 +75,10 @@ export class UsersService {
     const password = updateUserDto.password;
     const hashPassword = await bcrypt.hash(password, salt);
     userToUpdate.password = hashPassword;
+    userToUpdate.role = updateUserDto.role;
     const updatedUser = await this.userRepository.save(userToUpdate);
     return updatedUser;
   }
-
   async deleteUser(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
