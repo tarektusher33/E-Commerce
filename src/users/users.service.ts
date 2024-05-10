@@ -1,4 +1,10 @@
-import { Inject, Injectable, Request, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Request,
+  UnauthorizedException,
+  forwardRef,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -41,7 +47,7 @@ export class UsersService {
       return user;
     }
   }
-  
+
   async findAll(): Promise<User[]> {
     return await this.userRepository.find();
   }
@@ -49,17 +55,17 @@ export class UsersService {
   async findOne(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new Error('User not found');
+      throw new UnauthorizedException('User not found');
     } else return user;
   }
-  
+
   async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     console.log(id);
     let userToUpdate: User = await this.userRepository.findOne({
       where: { id },
     });
     if (!userToUpdate) {
-      throw new Error('User not found');
+      throw new UnauthorizedException('User not found');
     }
     userToUpdate.firstName = updateUserDto.firstName;
     userToUpdate.lastName = updateUserDto.lastName;
@@ -75,9 +81,9 @@ export class UsersService {
   async deleteUser(id: number) {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new Error('User not found');
+      throw new UnauthorizedException('User not found');
     } else {
-      this.userRepository.delete(id);
+      await this.userRepository.delete(id);
       return 'User successfully deleted';
     }
   }

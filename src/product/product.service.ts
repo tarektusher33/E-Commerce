@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { error } from 'console';
 
 @Injectable()
 export class ProductService {
@@ -29,9 +28,9 @@ export class ProductService {
   }
 
   async findOne(id: number): Promise<Product> {
-    let product = this.productRepository.findOne({ where: { id } });
+    let product = await this.productRepository.findOne({ where: { id } });
     if (!product) {
-      throw new error('Product was not found');
+      throw new UnauthorizedException('Product was not found');
     } else return product;
   }
 
@@ -43,7 +42,7 @@ export class ProductService {
       where: { id },
     });
     if (!productToUpdate) {
-      throw new Error('Product was not found');
+      throw new UnauthorizedException('Product was not found');
     }
     productToUpdate.productName = updateProductDto.productName;
     productToUpdate.price = updateProductDto.price;
@@ -56,9 +55,9 @@ export class ProductService {
   async remove(id: number) {
     const product = await this.productRepository.findOne({ where: { id } });
     if (!product) {
-      throw new Error('Product was not found');
+      throw new UnauthorizedException('Product was not found');
     } else {
-      this.productRepository.delete(id);
+      await this.productRepository.delete(id);
       return 'Product delete successfully';
     }
   }
