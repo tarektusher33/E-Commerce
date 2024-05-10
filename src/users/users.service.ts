@@ -26,7 +26,6 @@ export class UsersService {
   ): Promise<User | string> {
     let email = createUserDto.email;
     let temporaryUser = await this.userRepository.findOne({ where: { email } });
-
     if (temporaryUser) {
       return 'Sorry, this email has already been registered.';
     } else {
@@ -39,10 +38,10 @@ export class UsersService {
       const hashPassword = await bcrypt.hash(password, salt);
       user.password = hashPassword;
       await this.userRepository.save(user);
-      const token = this.authService.generateToken(req.user);
-      return `Access Token: ${token}`;
+      return user;
     }
   }
+  
   async findAll(): Promise<User[]> {
     return await this.userRepository.find();
   }
@@ -53,9 +52,10 @@ export class UsersService {
       throw new Error('User not found');
     } else return user;
   }
-
+  
   async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const userToUpdate: User = await this.userRepository.findOne({
+    console.log(id);
+    let userToUpdate: User = await this.userRepository.findOne({
       where: { id },
     });
     if (!userToUpdate) {
@@ -64,9 +64,12 @@ export class UsersService {
     userToUpdate.firstName = updateUserDto.firstName;
     userToUpdate.lastName = updateUserDto.lastName;
     userToUpdate.email = updateUserDto.email;
-    userToUpdate.password = updateUserDto.password;
-    userToUpdate.id = updateUserDto.id;
-    return await this.userRepository.save(userToUpdate);
+    const salt = 10;
+    const password = updateUserDto.password;
+    const hashPassword = await bcrypt.hash(password, salt);
+    userToUpdate.password = hashPassword;
+    const updatedUser = await this.userRepository.save(userToUpdate);
+    return updatedUser;
   }
 
   async deleteUser(id: number) {

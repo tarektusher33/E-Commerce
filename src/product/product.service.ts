@@ -20,6 +20,7 @@ export class ProductService {
     product.quantity = createProductDto.quantity;
     product.description = createProductDto.description;
     product.category = createProductDto.category;
+    await this.productRepository.save(product);
     return product;
   }
 
@@ -49,7 +50,6 @@ export class ProductService {
     productToUpdate.quantity = updateProductDto.quantity;
     productToUpdate.description = updateProductDto.description;
     productToUpdate.category = updateProductDto.category;
-    productToUpdate.id = updateProductDto.id;
     return await this.productRepository.save(productToUpdate);
   }
 
