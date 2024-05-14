@@ -7,6 +7,7 @@ import { loadEnvFile } from 'process';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { ProductModule } from './product/product.module';
+import { PasswordModule } from './password/password.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { ProductModule } from './product/product.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    ProductModule
+    ProductModule,
+    PasswordModule
   ],
   controllers: [AppController],
   providers: [AppService],
