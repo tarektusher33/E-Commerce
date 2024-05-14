@@ -13,6 +13,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { Product } from './entities/product.entity';
 
 @Controller('product')
 export class ProductController {
@@ -35,6 +36,16 @@ export class ProductController {
     return this.productService.findAll();
   }
 
+  @Get('user-based')
+  async getUserBasedProducts(@Request() req: any): Promise<Product[]> {
+    const accessToken = req.headers['authorization'].split(' ')[1];
+    const userId = this.authService.getUserIdFromAccessToken(accessToken);
+    if (!userId) {
+      throw new UnauthorizedException('Invalid access token');
+    }
+    return this.productService.findProductsByUserId(userId);
+  }
+  
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productService.findOne(+id);

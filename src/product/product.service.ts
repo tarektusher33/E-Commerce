@@ -28,7 +28,9 @@ export class ProductService {
   async findAll(): Promise<Product[]> {
     return this.productRepository.find();
   }
-
+  async findProductsByUserId(userId : number): Promise<Product[]>{
+    return this.productRepository.find({ where: { userId } });
+  }
   async findOne(id: number): Promise<Product> {
     let product = await this.productRepository.findOne({ where: { id } });
     if (!product) {
