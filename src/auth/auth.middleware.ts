@@ -6,10 +6,14 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { NextFunction, Request, Response } from 'express';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
+  ) {}
 
   use(req: Request, res: Response, next: NextFunction) {
     try {
@@ -17,11 +21,7 @@ export class AuthMiddleware implements NestMiddleware {
       if (baseURL == '/users/signup') {
         return next();
       }
-      const authHeader = req.headers['authorization'];
-      if (!authHeader || !authHeader.startsWith('Bearer')) {
-        throw new UnauthorizedException('Invalid Token');
-      }
-      const token = authHeader.split(' ')[1];
+      const token = this.authService.extractAccessToken(req);
       const payload = this.jwtService.verify(token);
       req['user'] = payload;
       const role = payload.role;

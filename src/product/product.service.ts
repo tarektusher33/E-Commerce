@@ -10,11 +10,13 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
+  async create(createProductDto: CreateProductDto, userId : number): Promise<Product> {
     const product: Product = new Product();
     product.productName = createProductDto.productName;
+    product.userId = userId;
     product.price = createProductDto.price;
     product.quantity = createProductDto.quantity;
     product.description = createProductDto.description;

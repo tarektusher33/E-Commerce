@@ -6,18 +6,28 @@ import {
   Patch,
   Param,
   Delete,
+  Request,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Controller('product')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService,
+    private readonly authService : AuthService
+  ) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  create(@Body() createProductDto: CreateProductDto, @Request() req) {
+    const token = this.authService.extractAccessToken(req);
+    const userId = this.authService.getUserIdFromAccessToken(token);
+    if(!userId){
+      throw new UnauthorizedException("Invalid Token");
+    }
+    return this.productService.create(createProductDto, userId);
   }
 
   @Get()

@@ -1,11 +1,7 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
