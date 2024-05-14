@@ -4,6 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class ProductService {
@@ -56,7 +57,8 @@ export class ProductService {
     return await this.productRepository.save(productToUpdate);
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: number) {
+    
     const product = await this.productRepository.findOne({ where: { id } });
     if (!product) {
       throw new UnauthorizedException('Product was not found');

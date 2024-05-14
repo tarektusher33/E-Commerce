@@ -47,17 +47,19 @@ export class ProductController {
   }
   
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.productService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(+id, updateProductDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+ async remove(@Param('id') id: string, @Request() req) {
+    const accessToken = await this.authService.extractAccessToken(req);
+    const userId = await this.authService.getUserIdFromAccessToken(accessToken);
+    return this.productService.remove(+id, userId);
   }
 }
