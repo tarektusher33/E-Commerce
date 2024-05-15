@@ -11,10 +11,12 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-
   ) {}
 
-  async create(createProductDto: CreateProductDto, userId : number): Promise<Product> {
+  async create(
+    createProductDto: CreateProductDto,
+    userId: number,
+  ): Promise<Product> {
     const product: Product = new Product();
     product.productName = createProductDto.productName;
     product.userId = userId;
@@ -29,7 +31,7 @@ export class ProductService {
   async findAll(): Promise<Product[]> {
     return this.productRepository.find();
   }
-  async findProductsByUserId(userId : number): Promise<Product[]>{
+  async findProductsByUserId(userId: number): Promise<Product[]> {
     return this.productRepository.find({ where: { userId } });
   }
   async findOne(id: number): Promise<Product> {
@@ -58,8 +60,9 @@ export class ProductService {
   }
 
   async remove(id: number, userId: number) {
-    
-    const product = await this.productRepository.findOne({ where: { id } });
+    const product = await this.productRepository.findOne({
+      where: { id, userId },
+    });
     if (!product) {
       throw new UnauthorizedException('Product was not found');
     } else {
