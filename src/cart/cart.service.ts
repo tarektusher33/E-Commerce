@@ -10,7 +10,6 @@ import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductService } from 'src/product/product.service';
-import { error } from 'console';
 
 @Injectable()
 export class CartService {
@@ -43,25 +42,47 @@ export class CartService {
       throw new InternalServerErrorException('Error creating cart', error);
     }
   }
+  
   async getCart(userId: number, productId: number) {
     const cartItem = await this.cartRepository.findOne({
       where: { userId, productId },
     });
     return cartItem;
   }
-  findAll() {
-    return `This action returns all cart`;
+
+  async updateCart(id: number, updateCartDto: UpdateCartDto) {
+    const product = await this.productService.findOne(updateCartDto.productId);
+
+    try {
+      if (product) {
+        const toUpdateCart: Cart = await this.cartRepository.findOne({
+          where: { id },
+        });
+        if (!toUpdateCart) {
+          throw new NotFoundException('Product not found');
+        } else {
+          toUpdateCart.productId = updateCartDto.productId;
+          toUpdateCart.quantity = updateCartDto.quantity;
+          return await this.cartRepository.save(toUpdateCart);
+        }
+      } else {
+        throw new NotFoundException('Product not found');
+      }
+    } catch (error) {
+      throw new InternalServerErrorException('Error updating cart', error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cart`;
-  }
+  async removeCart(id: number) {
+    const cartItem = this.cartRepository.findOne({ where: { id } });
 
-  update(id: number, updateCartDto: UpdateCartDto) {
-    return `This action updates a #${id} cart`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
+    if (!cartItem) {
+      throw new NotFoundException('Product not Found');
+    } else {
+      await this.cartRepository.delete(id);
+      return {
+        message: 'Cart Item is deleted successfully',
+      };
+    }
   }
 }
