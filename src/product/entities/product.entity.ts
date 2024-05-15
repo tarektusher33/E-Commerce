@@ -5,7 +5,7 @@ export class Product {
     @PrimaryGeneratedColumn()
     id : number;
 
-    @Column()
+    @Column({ nullable: false })
     userId : number;
     
     @Column()
@@ -17,9 +17,9 @@ export class Product {
     @Column()
     quantity : number;
 
-    @Column()
+    @Column({ nullable: true })
     description : string;
 
-    @Column()
+    @Column({ nullable: true })
     category : string;
 }
