@@ -4,10 +4,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthService } from 'src/auth/auth.service';
 import { GetProductsDto } from './dto/get-products-filter.dto';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
-
 
 @Injectable()
 export class ProductService {
@@ -16,7 +14,7 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async create(
+  async createProduct(
     createProductDto: CreateProductDto,
     userId: number,
   ): Promise<Product> {
@@ -39,7 +37,7 @@ export class ProductService {
     getProductsDto: GetProductsDto,
     page: number = 1,
     limit: number = 10,
-  ): Promise<Pagination<Product>>  {
+  ): Promise<Pagination<Product>> {
     const { productName, description, category, minPrice, maxPrice } =
       getProductsDto;
     let query = this.productRepository.createQueryBuilder('product');
