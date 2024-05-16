@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
@@ -23,22 +24,32 @@ export class CartService {
     userId: number,
   ): Promise<Cart> {
     const product = await this.productService.findOne(createCartDto.productId);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+    if (product.quantity < createCartDto.quantity) {
+      throw new UnauthorizedException(
+        `You cannot add ${createCartDto.quantity} items because there are only ${product.quantity}
+         items available. Please enter a valid quantity.`,
+      );
+    }
+    const cart = new CreateCartDto();
+    cart.productId = createCartDto.productId;
+    cart.quantity = createCartDto.quantity;
+    cart.userId = userId;
     try {
-      if (product) {
-        const cart: CreateCartDto = new CreateCartDto();
-        cart.productId = createCartDto.productId;
-        cart.quantity = createCartDto.quantity;
-        cart.userId = userId;
-        let cartItem = await this.getCart(userId, createCartDto.productId);
-        if (cartItem) {
-          cartItem.quantity += createCartDto.quantity;
-          return await this.cartRepository.save(cartItem);
-        } else return await this.cartRepository.save(cart);
+      let cartItem = await this.getCart(userId, createCartDto.productId);
+      if (cartItem) {
+        cartItem.quantity += createCartDto.quantity;
+        return await this.cartRepository.save(cartItem);
       } else {
-        throw new NotFoundException('Product not found');
+        return await this.cartRepository.save(cart);
       }
     } catch (error) {
-      throw new InternalServerErrorException('Error creating cart', error);
+      throw new InternalServerErrorException(
+        'Error creating cart',
+        error.message,
+      );
     }
   }
 
