@@ -37,10 +37,12 @@ export class CartService {
     cart.productId = createCartDto.productId;
     cart.quantity = createCartDto.quantity;
     cart.userId = userId;
+    cart.price = createCartDto.quantity*product.price;
     try {
       let cartItem = await this.getCart(userId, createCartDto.productId);
       if (cartItem) {
         cartItem.quantity += createCartDto.quantity;
+        cartItem.price += createCartDto.quantity*product.price;
         return await this.cartRepository.save(cartItem);
       } else {
         return await this.cartRepository.save(cart);
@@ -72,6 +74,7 @@ export class CartService {
         } else {
           toUpdateCart.productId = updateCartDto.productId;
           toUpdateCart.quantity = updateCartDto.quantity;
+          toUpdateCart.price = updateCartDto.quantity*product.price;
           return await this.cartRepository.save(toUpdateCart);
         }
       } else {
@@ -103,6 +106,7 @@ export class CartService {
     id: number,
     userId: number,
   ) {
+    const product = await this.productService.findOne(removeCartDto.productId);
     const cartItem = await this.cartRepository.findOne({ where: { id } });
     if (!cartItem) {
       throw new NotFoundException('Product not Found');
@@ -117,6 +121,7 @@ export class CartService {
           };
         } else {
           cartItem.quantity -= removeCartDto.quantity;
+          cartItem.price -= removeCartDto.quantity*product.price;
           if (cartItem.quantity == 0) {
             await this.cartRepository.delete(id);
           } else {

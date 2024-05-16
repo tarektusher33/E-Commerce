@@ -13,4 +13,7 @@ export class Cart {
 
   @Column()
   quantity: number;
+
+  @Column()
+  price: number;
 }
