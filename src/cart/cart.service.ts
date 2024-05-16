@@ -112,7 +112,8 @@ export class CartService {
       } else {
         if (removeCartDto.quantity > cartItem.quantity) {
           return {
-            message: `You cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity} items in the cart. Please enter a valid quantity.`,
+            message: `You cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity}
+            items in the cart. Please enter a valid quantity.`,
           };
         } else {
           cartItem.quantity -= removeCartDto.quantity;
