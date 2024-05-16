@@ -25,13 +25,13 @@ export class ProductController {
   ) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto, @Request() req) {
+  createProduct(@Body() createProductDto: CreateProductDto, @Request() req) {
     const token = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(token);
     if (!userId) {
       throw new UnauthorizedException('Invalid Token');
     }
-    return this.productService.create(createProductDto, userId);
+    return this.productService.createProduct(createProductDto, userId);
   }
 
   @Get()
