@@ -86,4 +86,28 @@ export class CartService {
       }
     }
   }
+
+  async removeItemFromCart(removeCartDto : CreateCartDto, id : number, userId: number){
+    const cartItem = await this.cartRepository.findOne({ where: { id } });
+    if (!cartItem) {
+      throw new NotFoundException('Product not Found');
+    } else {
+      if (userId != cartItem.userId) {
+        throw new NotFoundException('Product not Found');
+      } else {
+        if(removeCartDto.quantity> cartItem.quantity){
+          return {
+            message : `You cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity} items in the cart. Please enter a valid quantity.`
+          }
+        }
+        else{
+          cartItem.quantity -=removeCartDto.quantity;
+          await this.cartRepository.save(cartItem);
+          return {
+            message :  "Successfully removed item from your cart"
+          }
+        }
+      }
+    }
+  }
 }

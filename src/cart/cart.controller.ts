@@ -46,9 +46,9 @@ export class CartController {
     return this.cartService.removeCart(+id, userId);
   }
 
-  @Delete(':id')
-  removeItemFromCart(@Param('id') id : string, @Request() req){
+  @Delete('remove-item/:id')
+  removeItemFromCart(@Param('id') id : string, @Request() req, @Body() removeCartDto : CreateCartDto){
     const userId = this.getUserId(req);
-
+    return this.cartService.removeItemFromCart(removeCartDto, +id, userId);
   }
 }
