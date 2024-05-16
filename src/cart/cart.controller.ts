@@ -1,19 +1,17 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Patch,
   Param,
   Delete,
   Request,
-  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { AuthService } from 'src/auth/auth.service';
-import { ProductService } from 'src/product/product.service';
 
 @Controller('cart')
 export class CartController {
@@ -22,12 +20,17 @@ export class CartController {
     private readonly authService: AuthService,
   ) {}
 
-  @Post()
-  create(@Body() createCartDto: CreateCartDto, @Request() req) {
+  getUserId(req) : number{
     const accessToken = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(accessToken);
-    if (!userId || !accessToken) {
-      throw new UnauthorizedException('Invalid token or user id');
+    return userId;
+  }
+
+  @Post()
+  create(@Body() createCartDto: CreateCartDto, @Request() req) {
+    const userId = this.getUserId(req);
+    if (!userId) {
+      throw new BadRequestException();
     }
     return this.cartService.createCart(createCartDto, userId);
   }
@@ -38,7 +41,14 @@ export class CartController {
   }
 
   @Delete(':id')
-  removeCart(@Param('id') id: string) {
-    return this.cartService.removeCart(+id);
+  removeCart(@Param('id') id: string, @Request() req) {
+    const userId = this.getUserId(req);
+    return this.cartService.removeCart(+id, userId);
+  }
+
+  @Delete(':id')
+  removeItemFromCart(@Param('id') id : string, @Request() req){
+    const userId = this.getUserId(req);
+
   }
 }

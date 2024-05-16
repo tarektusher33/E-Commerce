@@ -2,7 +2,6 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
@@ -42,7 +41,7 @@ export class CartService {
       throw new InternalServerErrorException('Error creating cart', error);
     }
   }
-  
+
   async getCart(userId: number, productId: number) {
     const cartItem = await this.cartRepository.findOne({
       where: { userId, productId },
@@ -52,7 +51,6 @@ export class CartService {
 
   async updateCart(id: number, updateCartDto: UpdateCartDto) {
     const product = await this.productService.findOne(updateCartDto.productId);
-
     try {
       if (product) {
         const toUpdateCart: Cart = await this.cartRepository.findOne({
@@ -73,16 +71,19 @@ export class CartService {
     }
   }
 
-  async removeCart(id: number) {
-    const cartItem = this.cartRepository.findOne({ where: { id } });
-
+  async removeCart(id: number, userId: number) {
+    const cartItem = await this.cartRepository.findOne({ where: { id } });
     if (!cartItem) {
       throw new NotFoundException('Product not Found');
     } else {
-      await this.cartRepository.delete(id);
-      return {
-        message: 'Cart Item is deleted successfully',
-      };
+      if (userId != cartItem.userId) {
+        throw new NotFoundException('Product not Found');
+      } else {
+        await this.cartRepository.delete(id);
+        return {
+          message: 'Cart Item is deleted successfully',
+        };
+      }
     }
   }
 }
