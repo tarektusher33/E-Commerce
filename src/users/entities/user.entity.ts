@@ -1,5 +1,10 @@
-import { isEmpty } from 'rxjs';
-import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Product } from 'src/product/entities/product.entity';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -16,8 +21,11 @@ export class User {
   email: string;
 
   @Column()
-  password: string;
+  password: string;   
 
   @Column()
-  role : string;
+  role: string;
+
+  @OneToMany(() => Product, (product) => product.user)
+  products: Product[];
 }
