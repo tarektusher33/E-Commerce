@@ -22,7 +22,7 @@ import { AuthMiddleware } from 'src/auth/auth.middleware';
   ],
   controllers: [UsersController],
   providers: [UsersService],
-  exports: [UsersService],
+  exports: [UsersService, TypeOrmModule],
 })
 export class UsersModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
