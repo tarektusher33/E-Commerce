@@ -19,67 +19,68 @@ export class CartService {
     private readonly productService: ProductService,
   ) {}
 
-  async createCart(
-    createCartDto: CreateCartDto,
-    userId: number,
-  ): Promise<Cart> {
+  async createCart(createCartDto: CreateCartDto, userId: number): Promise<Cart> {
     const product = await this.productService.findOne(createCartDto.productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
+
     if (product.quantity < createCartDto.quantity) {
       throw new UnauthorizedException(
-        `You cannot add ${createCartDto.quantity} items because there are only ${product.quantity}
-         items available. Please enter a valid quantity.`,
+        `You cannot add ${createCartDto.quantity} items because there are only ${product.quantity} items available. Please enter a valid quantity.`,
       );
     }
-    const cart = new CreateCartDto();
-    cart.productId = createCartDto.productId;
-    cart.quantity = createCartDto.quantity;
-    cart.userId = userId;
-    cart.price = createCartDto.quantity*product.price;
-    try {
-      let cartItem = await this.getCart(userId, createCartDto.productId);
-      if (cartItem) {
-        cartItem.quantity += createCartDto.quantity;
-        cartItem.price += createCartDto.quantity*product.price;
-        return await this.cartRepository.save(cartItem);
+
+    let cartItem = await this.getCart(userId, createCartDto.productId);
+    if (cartItem) {
+      const existingProduct = cartItem.products.find(p => p.id === createCartDto.productId);
+      if (existingProduct) {
+        existingProduct.quantity += createCartDto.quantity;
+        existingProduct.price += createCartDto.quantity * product.price;
       } else {
-        return await this.cartRepository.save(cart);
+        cartItem.products.push(product);
+        cartItem.quantity += createCartDto.quantity;
+        cartItem.price += createCartDto.quantity * product.price;
       }
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Error creating cart',
-        error.message,
-      );
+      return await this.cartRepository.save(cartItem);
+    } else {
+      const newCart = new Cart();
+      newCart.userId = userId;
+      newCart.products = [product];
+      newCart.quantity = createCartDto.quantity;
+      newCart.price = createCartDto.quantity * product.price;
+      return await this.cartRepository.save(newCart);
     }
   }
 
-  async getCart(userId: number, productId: number) {
+  async getCart(userId: number, productId: number): Promise<Cart> {
     const cartItem = await this.cartRepository.findOne({
-      where: { userId, productId },
+      where: { userId },
+      relations: ['products'],
     });
     return cartItem;
   }
 
   async updateCart(id: number, updateCartDto: UpdateCartDto) {
-    const product = await this.productService.findOne(updateCartDto.productId);
     try {
-      if (product) {
-        const toUpdateCart: Cart = await this.cartRepository.findOne({
-          where: { id },
-        });
-        if (!toUpdateCart) {
-          throw new NotFoundException('Product not found');
-        } else {
-          toUpdateCart.productId = updateCartDto.productId;
-          toUpdateCart.quantity = updateCartDto.quantity;
-          toUpdateCart.price = updateCartDto.quantity*product.price;
-          return await this.cartRepository.save(toUpdateCart);
-        }
-      } else {
+      const product = await this.productService.findOne(
+        updateCartDto.productId,
+      );
+      if (!product) {
         throw new NotFoundException('Product not found');
       }
+      const toUpdateCart: Cart = await this.cartRepository.findOne({
+        where: { id },
+        relations: ['products'],
+      });
+      console.log(toUpdateCart);
+      if (!toUpdateCart) {
+        throw new NotFoundException('Cart not found');
+      }
+      toUpdateCart.quantity = updateCartDto.quantity;
+      toUpdateCart.price = product.price * updateCartDto.quantity;
+
+      return await this.cartRepository.save(toUpdateCart);
     } catch (error) {
       throw new InternalServerErrorException('Error updating cart', error);
     }
@@ -121,7 +122,7 @@ export class CartService {
           };
         } else {
           cartItem.quantity -= removeCartDto.quantity;
-          cartItem.price -= removeCartDto.quantity*product.price;
+          cartItem.price -= removeCartDto.quantity * product.price;
           if (cartItem.quantity == 0) {
             await this.cartRepository.delete(id);
           } else {
