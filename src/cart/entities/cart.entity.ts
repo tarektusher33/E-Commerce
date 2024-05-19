@@ -1,5 +1,11 @@
 import { Product } from 'src/product/entities/product.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, TableForeignKey } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Cart {
@@ -9,7 +15,8 @@ export class Cart {
   @Column()
   userId: number;
 
-  @OneToMany(()=>Product, Product => Product.cart)
+  @ManyToMany(() => Product, (product) => product.carts, { cascade: true })
+  @JoinTable()
   products: Product[];
 
   @Column()
@@ -17,7 +24,4 @@ export class Cart {
 
   @Column()
   price: number;
-
-  // @OneToMany(() => Product, product => product.cart)
-  // products: Product[];
 }

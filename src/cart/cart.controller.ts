@@ -7,6 +7,7 @@ import {
   Delete,
   Request,
   BadRequestException,
+  Get,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
@@ -50,5 +51,10 @@ export class CartController {
   removeItemFromCart(@Param('id') id : string, @Request() req, @Body() removeCartDto : CreateCartDto){
     const userId = this.getUserId(req);
     return this.cartService.removeItemFromCart(removeCartDto, +id, userId);
+  }
+
+  @Get()
+  findAllCarts(){
+    return this.cartService.findAllCarts();
   }
 }
