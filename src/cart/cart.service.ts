@@ -105,28 +105,28 @@ export class CartService {
   }
 
   async removeCart(cartId: number, userId: number) {
-    // Find the cart belonging to the user with the specified product
     const cart = await this.cartRepository.findOne({
       where: { id: cartId, userId },
       relations: ['products'],
     });
-
+    console.log(cart);
+    console.log(cartId, userId);
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
-
-    // Delete the cart
     await this.cartRepository.remove(cart);
 
     return {
       message: 'Successfully removed item from your cart',
     };
-}
-
+  }
 
   async findAllCarts() {
-    return this.cartRepository.find();
+    return this.cartRepository.find({
+      relations: ['products'],
+    });
   }
+
   async removeItemFromCart(
     removeCartDto: CreateCartDto,
     id: number,
