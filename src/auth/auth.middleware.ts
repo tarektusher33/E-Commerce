@@ -1,7 +1,6 @@
 import {
   Injectable,
   NestMiddleware,
-  Param,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -14,7 +13,7 @@ export class AuthMiddleware implements NestMiddleware {
     private readonly jwtService: JwtService,
     private readonly authService: AuthService,
   ) {}
-
+  
   use(req: Request, res: Response, next: NextFunction) {
     try {
       const baseURL = req.originalUrl;

@@ -1,8 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { CreateLogInDto } from './dto/login-cart.dto';
 import { CreateSignUpDto } from './dto/signup-cart.dto';
 import { AuthGuard } from '@nestjs/passport';
 
