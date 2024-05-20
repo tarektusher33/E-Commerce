@@ -2,8 +2,11 @@ import { Controller, Get, Post, Body, Request } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
 @Controller('order')
+@ApiTags('Order')
+@ApiSecurity('JWT-auth')
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,

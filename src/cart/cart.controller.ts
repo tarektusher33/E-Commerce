@@ -13,8 +13,11 @@ import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
 @Controller('cart')
+@ApiTags('Cart')
+@ApiSecurity('JWT-auth')
 export class CartController {
   constructor(
     private readonly cartService: CartService,

@@ -16,8 +16,11 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { Product } from './entities/product.entity';
 import { GetProductsDto } from './dto/get-products-filter.dto';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
 @Controller('product')
+@ApiTags('Product')
+@ApiSecurity('JWT-auth')
 export class ProductController {
   constructor(
     private readonly productService: ProductService,
@@ -41,7 +44,11 @@ export class ProductController {
     @Query() getProductsDto: GetProductsDto,
   ) {
     if (Object.keys(getProductsDto).length) {
-      return this.productService.getProductsWithFilter(getProductsDto, page, limit);
+      return this.productService.getProductsWithFilter(
+        getProductsDto,
+        page,
+        limit,
+      );
     } else {
       return this.productService.getProducts();
     }
