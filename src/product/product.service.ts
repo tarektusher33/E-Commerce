@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
@@ -6,28 +6,27 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetProductsDto } from './dto/get-products-filter.dto';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(User)
+    private readonly userRepository : Repository<User>
   ) {}
 
-  async createProduct(
-    createProductDto: CreateProductDto,
-    userId: number,
-  ): Promise<Product> {
-    const product: Product = new Product();
-    product.productName = createProductDto.productName;
-    product.userId = userId;
-    product.price = createProductDto.price;
-    product.quantity = createProductDto.quantity;
-    product.description = createProductDto.description;
-    product.category = createProductDto.category;
-    await this.productRepository.save(product);
-    return product;
+  async createProduct(createProductDto: CreateProductDto, userId: number): Promise<Product> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+  
+    const product = this.productRepository.create({ ...createProductDto, user });
+    return this.productRepository.save(product);
   }
+  
 
   async getProducts(): Promise<Product[]> {
     return this.productRepository.find();
@@ -71,8 +70,9 @@ export class ProductService {
   }
 
   async findProductsByUserId(userId: number): Promise<Product[]> {
-    return this.productRepository.find({ where: { userId } });
+    return this.productRepository.find({ where: { id: userId } });
   }
+  
   async findOne(id: number): Promise<Product> {
     let product = await this.productRepository.findOne({ where: { id } });
     if (!product) {
@@ -98,15 +98,21 @@ export class ProductService {
     return await this.productRepository.save(productToUpdate);
   }
 
-  async remove(id: number, userId: number) {
+  async remove(productId: number, userId: number): Promise<string> {
     const product = await this.productRepository.findOne({
-      where: { id, userId },
+      where: {
+        id: productId,
+        user: { id: userId },
+      },
+      relations: ['user'],
     });
+  
     if (!product) {
-      throw new UnauthorizedException('Product was not found');
+      throw new UnauthorizedException('Product was not found or you do not have permission to delete it');
     } else {
-      await this.productRepository.delete(id);
-      return 'Product delete successfully';
+      await this.productRepository.delete(productId);
+      return 'Product deleted successfully';
     }
   }
+  
 }

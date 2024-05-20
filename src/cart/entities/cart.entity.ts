@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Product } from 'src/product/entities/product.entity';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Cart {
@@ -8,8 +15,9 @@ export class Cart {
   @Column()
   userId: number;
 
-  @Column()
-  productId: number;
+  @ManyToMany(() => Product, (product) => product.carts, { cascade: true })
+  @JoinTable()
+  products: Product[];
 
   @Column()
   quantity: number;

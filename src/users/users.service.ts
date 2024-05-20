@@ -50,11 +50,18 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+    return await this.userRepository.find({
+      relations: {
+        products: true,
+      },
+    });
   }
 
   async findOne(id: number) {
-    let user = await this.userRepository.findOne({ where: { id } });
+    let user = await this.userRepository.findOne({
+      where: { id },
+      relations: { products: true },
+    });
     if (!user) {
       throw new UnauthorizedException('User not found');
     } else return user;
@@ -80,7 +87,7 @@ export class UsersService {
     return updatedUser;
   }
 
-  async updatePassword(id: number, data : any) : Promise<any>{
+  async updatePassword(id: number, data: any): Promise<any> {
     return this.userRepository.update(id, data);
   }
   async deleteUser(id: number) {

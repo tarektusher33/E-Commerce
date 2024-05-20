@@ -1,25 +1,41 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Cart } from 'src/cart/entities/cart.entity';
+import { User } from 'src/users/entities/user.entity';
+import { OrderItem } from 'src/order/entities/order-item.entity';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Product {
-    @PrimaryGeneratedColumn()
-    id : number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ nullable: false })
-    userId : number;
-    
-    @Column()
-    productName : string;
+  @Column()
+  productName: string;
 
-    @Column()
-    price : number;
+  @Column()
+  price: number;
 
-    @Column()
-    quantity : number;
+  @Column()
+  quantity: number;
 
-    @Column({ nullable: true })
-    description : string;
+  @Column({ nullable: true })
+  description: string;
 
-    @Column({ nullable: true })
-    category : string;
+  @Column({ nullable: true })
+  category: string;
+
+  @ManyToOne(() => User, (user) => user.products)
+  user: User;
+
+  @ManyToMany(() => Cart, (cart) => cart.products)
+  carts: Cart[];
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  orderItems: OrderItem[];
 }

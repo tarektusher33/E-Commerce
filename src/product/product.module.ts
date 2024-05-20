@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthMiddleware } from 'src/auth/auth.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { AuthModule } from 'src/auth/auth.module';
       envFilePath: '.local.env',
       isGlobal: true,
     }),
-    AuthModule
+    AuthModule,
+    UsersModule
   ],
   controllers: [ProductController],
   providers: [ProductService],
