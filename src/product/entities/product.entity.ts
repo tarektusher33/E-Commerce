@@ -1,10 +1,12 @@
 import { Cart } from 'src/cart/entities/cart.entity';
 import { User } from 'src/users/entities/user.entity';
+import { OrderItem } from 'src/order/entities/order-item.entity';
 import {
   Column,
   Entity,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -33,4 +35,7 @@ export class Product {
 
   @ManyToMany(() => Cart, (cart) => cart.products)
   carts: Cart[];
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  orderItems: OrderItem[];
 }
