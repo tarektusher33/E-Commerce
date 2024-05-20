@@ -30,9 +30,10 @@ export class CartService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    if (product.quantity < createCartDto.quantity) {
+    if (product.stockQuantity < createCartDto.quantity) {
       throw new UnauthorizedException(
-        `You cannot add ${createCartDto.quantity} items because there are only ${product.quantity} items available. Please enter a valid quantity.`,
+        `You cannot add ${createCartDto.quantity} items because there are only ${product.stockQuantity}
+         items available. Please enter a valid quantity.`,
       );
     }
     let cart = await this.cartRepository.findOne({
@@ -44,10 +45,10 @@ export class CartService {
         (p) => p.id === createCartDto.productId,
       );
       if (existingProduct) {
-        existingProduct.quantity += createCartDto.quantity;
+        existingProduct.stockQuantity += createCartDto.quantity;
         existingProduct.price += createCartDto.quantity * product.price;
       } else {
-        product.quantity = createCartDto.quantity;
+        product.stockQuantity = createCartDto.quantity;
         cart.products.push(product);
       }
       cart.quantity += createCartDto.quantity;
@@ -55,7 +56,7 @@ export class CartService {
     } else {
       cart = new Cart();
       cart.userId = userId;
-      product.quantity = createCartDto.quantity;
+      product.stockQuantity = createCartDto.quantity;
       cart.products = [product];
       cart.quantity = createCartDto.quantity;
       cart.price = createCartDto.quantity * product.price;
@@ -151,7 +152,8 @@ export class CartService {
     }
     if (removeCartDto.quantity > cartItem.quantity) {
       throw new BadRequestException(
-        `Cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity} items in the cart`,
+        `Cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity}
+         items in the cart`,
       );
     }
     cartItem.quantity -= removeCartDto.quantity;

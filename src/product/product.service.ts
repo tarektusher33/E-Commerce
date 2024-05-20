@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
@@ -22,7 +22,15 @@ export class ProductService {
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-  
+    if (!createProductDto.productName || createProductDto.productName.trim() === '') {
+      throw new BadRequestException('Product name is required');
+    }
+    if (!createProductDto.price || createProductDto.price <= 0) {
+      throw new BadRequestException('Price must be greater than zero');
+    }
+    if (!createProductDto.stockQuantity || createProductDto.stockQuantity < 0) {
+      throw new BadRequestException('Quantity must be zero or greater');
+    }
     const product = this.productRepository.create({ ...createProductDto, user });
     return this.productRepository.save(product);
   }
@@ -54,6 +62,7 @@ export class ProductService {
         { description: `%${trimmedDescription}%` },
       );
     }
+
     if (category) {
       query = query.andWhere('LOWER(product.category) = LOWER(:category)', {
         category,
@@ -92,7 +101,7 @@ export class ProductService {
     }
     productToUpdate.productName = updateProductDto.productName;
     productToUpdate.price = updateProductDto.price;
-    productToUpdate.quantity = updateProductDto.quantity;
+    productToUpdate.stockQuantity = updateProductDto.stockQuantity;
     productToUpdate.description = updateProductDto.description;
     productToUpdate.category = updateProductDto.category;
     return await this.productRepository.save(productToUpdate);
