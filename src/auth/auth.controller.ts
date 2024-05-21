@@ -20,8 +20,12 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  signUpUser(@Body() createSignUpDto: CreateSignUpDto, @Request() req) {
-    return this.authService.signUpUser(createSignUpDto, req.user);
+  async signUpUser(@Body() createSignUpDto: CreateSignUpDto, @Request() req) : Promise<any> {
+    const user = await this.authService.signUpUser(createSignUpDto, req.user);
+    return {
+      message : 'Signin Successful',
+      user : user,
+    }
   }
 
   @Post('/login')
