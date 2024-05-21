@@ -47,7 +47,6 @@ export class AuthService {
   }
 
   extractAccessToken(req : any): string | null {
-    
     if (req.headers && req.headers['authorization']) {
      const authHeader = req.headers['authorization'];
       if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {

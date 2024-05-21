@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { IsCustomEmail } from 'src/common/validators/custom-email.validator';
 
 export class CreateSignUpDto {
@@ -15,7 +15,6 @@ export class CreateSignUpDto {
 
   @ApiProperty()
   @IsCustomEmail({ message: 'Please enter a valid email address' })
-  @IsString()
   email: string;
 
   @ApiProperty()
