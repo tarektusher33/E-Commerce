@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loadEnvFile } from 'process';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './users/users.module';
-import { ProductModule } from './product/product.module';
-import { PasswordModule } from './password/password.module';
-import { CartModule } from './cart/cart.module';
-import { OrderModule } from './order/order.module';
+import { UsersModule } from './module/users/users.module';
+import { AuthModule } from './module/auth/auth.module';
+import { ProductModule } from './module/product/product.module';
+import { PasswordModule } from './module/password/password.module';
+import { CartModule } from './module/cart/cart.module';
+import { OrderModule } from './module/order/order.module';
+import { databaseConfig } from './config/database.config';
+
 
 @Module({
   imports: [
@@ -21,16 +24,7 @@ import { OrderModule } from './order/order.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: +configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get<boolean>('DB_SYNC'),
-      }),
+      useFactory: (configService: ConfigService) => databaseConfig(configService),
       inject: [ConfigService],
     }),
     UsersModule,
