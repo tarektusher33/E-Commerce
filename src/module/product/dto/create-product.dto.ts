@@ -1,20 +1,58 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductDto {
   id: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Product Name',
+    type: 'string',
+    description: 'Please enter your product name',
+  })
+  @IsString()
   productName: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '0',
+    type: 'number',
+    description: 'Please enter product price',
+  })
+  @IsNumber()
   price: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '0',
+    type: 'number',
+    description: 'Please enter discount',
+  })
+  @IsNumber()
+  @IsOptional()
+  @Transform(({ value }) => value ?? 0)
+  discount: number;
+
+  @ApiProperty({
+    example: '0',
+    type: 'number',
+    description: 'Please enter stock quantity',
+  })
+  @IsNumber()
   stockQuantity: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Product description',
+    type: 'string',
+    description: 'Please enter product description',
+  })
+  @IsString()
+  @IsOptional()
   description: string;
-  
-  @ApiProperty()
+
+  @ApiProperty({
+    example: 'Product category',
+    type: 'string',
+    description: 'Please enter product category',
+  })
+  @IsString()
   category: string;
 }

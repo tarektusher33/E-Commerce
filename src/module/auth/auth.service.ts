@@ -1,4 +1,10 @@
-import { Inject, Injectable, Request, forwardRef } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  Request,
+  forwardRef,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,19 +20,21 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => UsersService))
-    private readonly userService : UsersService,
+    private readonly userService: UsersService,
     @InjectRepository(User)
-    private readonly userRepository : Repository<User>
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async signUpUser(
-    createSignUpDto : CreateSignUpDto,
+    createSignUpDto: CreateSignUpDto,
     @Request() req,
-  ): Promise<User | string> {
+  ): Promise<User> {
     let email = createSignUpDto.email;
     let temporaryUser = await this.userRepository.findOne({ where: { email } });
     if (temporaryUser) {
-      return 'Sorry, this email has already been registered.';
+      throw new ConflictException(
+        'Sorry, this email has already been registered.',
+      );
     } else {
       const user: User = new User();
       user.firstName = createSignUpDto.firstName;
@@ -46,17 +54,16 @@ export class AuthService {
     return this.jwtService.sign(JSON.parse(JSON.stringify(payload)));
   }
 
-  extractAccessToken(req : any): string | null {
-    
+  extractAccessToken(req: any): string | null {
     if (req.headers && req.headers['authorization']) {
-     const authHeader = req.headers['authorization'];
+      const authHeader = req.headers['authorization'];
       if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
         return authHeader.split(' ')[1];
       }
     }
-   return null;
+    return null;
   }
-
+  
   getUserIdFromAccessToken(accessToken: string): number | null {
     try {
       const payload = this.jwtService.verify(accessToken);

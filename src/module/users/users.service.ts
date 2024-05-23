@@ -46,7 +46,6 @@ export class UsersService {
     }
     userToUpdate.firstName = updateUserDto.firstName;
     userToUpdate.lastName = updateUserDto.lastName;
-    userToUpdate.email = updateUserDto.email;
     if (updateUserDto.password) {
       const salt = 10;
       const hashPassword = await bcrypt.hash(updateUserDto.password, salt);
