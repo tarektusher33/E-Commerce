@@ -31,6 +31,9 @@ export class AuthMiddleware implements NestMiddleware {
         const method = req.method;
         if (method == 'GET') {
           next();
+        }
+        else if(method == 'PATCH'){
+          next();
         } else {
           throw new UnauthorizedException(
             'You do not have permission to perform this action.',
