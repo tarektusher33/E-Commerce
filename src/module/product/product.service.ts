@@ -37,7 +37,7 @@ export class ProductService {
   
 
   async getProducts(): Promise<Product[]> {
-    return this.productRepository.find();
+    return await this.productRepository.find();
   }
 
   async getProductsWithFilter(
@@ -78,14 +78,17 @@ export class ProductService {
     return paginate<Product>(query, { page, limit });
   }
 
-  async findProductsByUserId(userId: number): Promise<Product[]> {
-    return this.productRepository.find({ where: { id: userId } });
+  async getProductsByUserId(userId: number): Promise<Product[]> {
+    const products = await this.productRepository.find({ where: {user : { id : userId }}, 
+      
+    });
+    return products;
   }
   
   async findOne(id: number): Promise<Product> {
-    let product = await this.productRepository.findOne({ where: { id } });
+    let product = await this.productRepository.findOne({ where: { id } , relations : ['user']});
     if (!product) {
-      throw new UnauthorizedException('Product was not found');
+      throw new UnauthorizedException('Product are not found');
     } else return product;
   }
 
@@ -107,7 +110,7 @@ export class ProductService {
     return await this.productRepository.save(productToUpdate);
   }
 
-  async remove(productId: number, userId: number): Promise<string> {
+  async remove(productId: number, userId: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: {
         id: productId,
@@ -120,7 +123,7 @@ export class ProductService {
       throw new UnauthorizedException('Product was not found or you do not have permission to delete it');
     } else {
       await this.productRepository.delete(productId);
-      return 'Product deleted successfully';
+      return product;
     }
   }
   

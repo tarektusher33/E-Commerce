@@ -16,13 +16,12 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { GetProductsDto } from './dto/get-products-filter.dto';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
-import { User } from '../users/entities/user.entity';
 import { createResponse } from 'src/utils/response.util';
 
-@Controller('product')
+@Controller('products')
 @ApiTags('Product')
 @ApiSecurity('JWT-auth')
 export class ProductController {
@@ -31,6 +30,7 @@ export class ProductController {
     private readonly authService: AuthService,
   ) {}
 
+  @ApiBearerAuth('access-token')
   @Post()
   async createProduct(
     @Body() createProductDto: CreateProductDto,
@@ -86,33 +86,136 @@ export class ProductController {
     }
   }
 
+  @ApiBearerAuth('access-token')
   @Get('user-based')
-  async getUserBasedProducts(@Request() req: any): Promise<Product[]> {
-    const accessToken = req.headers['authorization'].split(' ')[1];
+  async getUserBasedProducts(
+    @Request() req: any,
+  ): Promise<ApiResponse<Product[] | null>> {
+    const accessToken = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(accessToken);
     if (!userId) {
-      throw new UnauthorizedException('Invalid access token');
+      throw new UnauthorizedException();
     }
-    return this.productService.findProductsByUserId(userId);
+    try {
+      const products = await this.productService.getProductsByUserId(userId);
+      if (products) {
+        return createResponse<Product[]>(
+          products,
+          'Products are found',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Something went wrong',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Error occurred while getting product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
+    }
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
+  async findOne(@Param('id') id: string): Promise<ApiResponse<Product | null>> {
+    try {
+      const product = await this.productService.findOne(+id);
+      if (product) {
+        return createResponse<Product>(
+          product,
+          'Products are found',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Product are not found',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Error occurred while getting product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
+    }
   }
 
+  @ApiBearerAuth('access-token')
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
-  ) {
-    return this.productService.update(+id, updateProductDto);
+    @Request() req,
+  ): Promise<ApiResponse<Product | null>> {
+    const token = this.authService.extractAccessToken(req);
+    const userId = this.authService.getUserIdFromAccessToken(token);
+    if (!userId) {
+      throw new UnauthorizedException();
+    }
+    try {
+      console.log(userId, updateProductDto, id);
+      const product = await this.productService.update(+id, updateProductDto);
+      if (product) {
+        return createResponse<Product>(
+          product,
+          'Update Successfully',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Something went wrong',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Error occurred while updating product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
+    }
   }
 
+  @ApiBearerAuth('access-token')
   @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req) {
+  async remove(
+    @Param('id') id: string,
+    @Request() req,
+  ): Promise<ApiResponse<Product | null>> {
     const accessToken = await this.authService.extractAccessToken(req);
     const userId = await this.authService.getUserIdFromAccessToken(accessToken);
-    return this.productService.remove(+id, userId);
+    try {
+      const rmvProduct = await this.productService.remove(+id, userId);
+      if (rmvProduct) {
+        return createResponse<Product>(
+          rmvProduct,
+          'Product deleted successfully',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Something went wrong',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Error occurred while updating product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
+    }
   }
 }
