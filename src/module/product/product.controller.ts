@@ -9,6 +9,7 @@ import {
   Request,
   UnauthorizedException,
   Query,
+  HttpStatus,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -17,6 +18,9 @@ import { Product } from './entities/product.entity';
 import { GetProductsDto } from './dto/get-products-filter.dto';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
+import { ApiResponse } from 'src/common/interfaces/response.interface';
+import { User } from '../users/entities/user.entity';
+import { createResponse } from 'src/utils/response.util';
 
 @Controller('product')
 @ApiTags('Product')
@@ -28,13 +32,41 @@ export class ProductController {
   ) {}
 
   @Post()
-  createProduct(@Body() createProductDto: CreateProductDto, @Request() req) {
+  async createProduct(
+    @Body() createProductDto: CreateProductDto,
+    @Request() req,
+  ): Promise<ApiResponse<Product | null>> {
     const token = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(token);
     if (!userId) {
-      throw new UnauthorizedException('Invalid Token');
+      throw new UnauthorizedException();
     }
-    return this.productService.createProduct(createProductDto, userId);
+    try {
+      const product = await this.productService.createProduct(
+        createProductDto,
+        userId,
+      );
+      if (product) {
+        return createResponse<Product>(
+          product,
+          'Create Product Successfully',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Something went wrong',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Error occurred while creating product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
+    }
   }
 
   @Get()
