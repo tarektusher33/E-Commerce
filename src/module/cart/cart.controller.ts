@@ -6,7 +6,6 @@ import {
   Param,
   Delete,
   Request,
-  BadRequestException,
   Get,
   HttpStatus,
 } from '@nestjs/common';
@@ -47,12 +46,8 @@ export class CartController {
 
     try {
       const cart = await this.cartService.createCart(createCartDto, userId);
-      if('message' in cart){
-        return createResponse<null>(
-          null,
-          cart.message,
-          HttpStatus.BAD_REQUEST
-        )
+      if ('message' in cart) {
+        return createResponse<null>(null, cart.message, HttpStatus.BAD_REQUEST);
       }
       if (cart) {
         return createResponse<Cart>(
@@ -72,7 +67,7 @@ export class CartController {
         null,
         'Internal Server Error',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message
+        error.message,
       );
     }
   }
@@ -83,19 +78,83 @@ export class CartController {
   }
 
   @Delete(':id')
-  removeCart(@Param('id') id: string, @Request() req) {
+  async removeCart(
+    @Param('id') id: string,
+    @Request() req,
+  ): Promise<ApiResponse<Cart | null>> {
     const userId = this.getUserId(req);
-    return this.cartService.removeCart(+id, userId);
+    if (!userId) {
+      return createResponse<null>(null, 'Please log in', HttpStatus.NOT_FOUND);
+    }
+    try {
+      const cart = await this.cartService.removeCart(+id, userId);
+      if ('message' in cart) {
+        return createResponse<null>(null, cart.message, HttpStatus.NOT_FOUND);
+      }
+      if (cart) {
+        return createResponse<Cart>(
+          cart,
+          'Remove Cart Successfully',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Something went wrong for removing cart',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
+    }
   }
 
   @Delete('remove-item/:id')
-  removeItemFromCart(
+  async removeItemFromCart(
     @Param('id') id: string,
     @Request() req,
     @Body() removeCartDto: CreateCartDto,
-  ) {
-    const userId = this.getUserId(req);
-    return this.cartService.removeItemFromCart(removeCartDto, +id, userId);
+  ) : Promise<ApiResponse<Cart | string>>{
+    try {
+      const userId = this.getUserId(req);
+      const cartItem = await this.cartService.removeItemFromCart(
+        removeCartDto,
+        +id,
+        userId,
+      );
+      if('message' in cartItem){
+        return createResponse<null> (
+          null,
+          cartItem.message,
+          HttpStatus.NOT_FOUND
+        )
+      }
+      if(cartItem){
+        return createResponse<Cart> (
+          cartItem,
+          'Cart item removed successfully',
+          HttpStatus.OK
+        )
+      }
+      else{
+        return createResponse<Cart> (
+          null,
+          'Somthing went wrong for removing item',
+          HttpStatus.BAD_REQUEST
+        )
+      }
+    } catch (error) {
+      return createResponse<Cart> (
+        null,
+        'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      )
+    }
   }
 
   @Get()
