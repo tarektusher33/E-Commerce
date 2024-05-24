@@ -3,7 +3,6 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
@@ -11,7 +10,7 @@ import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductService } from '../product/product.service';
-
+import { ApiResponse } from 'src/common/interfaces/response.interface';
 
 @Injectable()
 export class CartService {
@@ -24,16 +23,16 @@ export class CartService {
   async createCart(
     createCartDto: CreateCartDto,
     userId: number,
-  ): Promise<Cart> {
+  ): Promise<Cart | { message: string }> {
     const product = await this.productService.findOne(createCartDto.productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
     if (product.stockQuantity < createCartDto.quantity) {
-      throw new UnauthorizedException(
-        `You cannot add ${createCartDto.quantity} items because there are only ${product.stockQuantity}
+      return {
+        message: `You cannot add ${createCartDto.quantity} items because there are only ${product.stockQuantity}
          items available. Please enter a valid quantity.`,
-      );
+      };
     }
     let cart = await this.cartRepository.findOne({
       where: { userId },
@@ -104,21 +103,21 @@ export class CartService {
     }
   }
 
-  async removeCart(cartId: number, userId: number) {
+  async removeCart(
+    cartId: number,
+    userId: number,
+  ): Promise<Cart | { message: string }> {
     const cart = await this.cartRepository.findOne({
       where: { id: cartId, userId },
       relations: ['products'],
     });
-    console.log(cart);
-    console.log(cartId, userId);
     if (!cart) {
-      throw new NotFoundException('Cart not found');
+      return {
+        message: 'Cart not found',
+      };
     }
     await this.cartRepository.remove(cart);
-
-    return {
-      message: 'Successfully removed item from your cart',
-    };
+    return cart;
   }
 
   async findAllCarts() {
@@ -131,29 +130,37 @@ export class CartService {
     removeCartDto: CreateCartDto,
     id: number,
     userId: number,
-  ) {
+  ): Promise<Cart | { message: string }> {
     if (removeCartDto.quantity <= 0) {
-      throw new BadRequestException('Quantity must be greater than zero');
+      return {
+        message: 'Quantity must be greater than zero',
+      };
     }
     const product = await this.productService.findOne(removeCartDto.productId);
     if (!product) {
-      throw new NotFoundException('Product not found');
+      return {
+        message: 'Product not found',
+      };
     }
     const cartItem = await this.cartRepository.findOne({
       where: { id },
       relations: ['products'],
     });
     if (!cartItem) {
-      throw new NotFoundException('Cart item not found');
+      return {
+        message: 'Cart item not found',
+      };
     }
     if (userId !== cartItem.userId) {
-      throw new NotFoundException('Cart item not found');
+      return {
+        message: 'Cart item not found',
+      };
     }
     if (removeCartDto.quantity > cartItem.quantity) {
-      throw new BadRequestException(
-        `Cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity}
+      return {
+        message: `Cannot remove ${removeCartDto.quantity} items because there are only ${cartItem.quantity}
          items in the cart`,
-      );
+      };
     }
     cartItem.quantity -= removeCartDto.quantity;
     cartItem.price -= removeCartDto.quantity * product.price;
@@ -162,8 +169,7 @@ export class CartService {
     } else {
       await this.cartRepository.save(cartItem);
     }
-    return {
-      message: 'Successfully removed item from your cart',
-    };
+    return cartItem;
+    
   }
 }

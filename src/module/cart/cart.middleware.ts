@@ -21,7 +21,7 @@ export class CartMiddleware implements NestMiddleware {
       req['user'] = payload;
       next();
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException;
     }
   }
 }
