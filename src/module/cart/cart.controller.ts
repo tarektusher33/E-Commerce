@@ -8,12 +8,16 @@ import {
   Request,
   BadRequestException,
   Get,
+  HttpStatus,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
+import { ApiResponse } from 'src/common/interfaces/response.interface';
+import { Cart } from './entities/cart.entity';
+import { createResponse } from 'src/utils/response.util';
 
 @Controller('cart')
 @ApiTags('Cart')
@@ -24,19 +28,53 @@ export class CartController {
     private readonly authService: AuthService,
   ) {}
 
-  getUserId(req) : number{
+  getUserId(req): number {
     const accessToken = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(accessToken);
     return userId;
   }
 
+  @ApiBearerAuth('access token')
   @Post()
-  create(@Body() createCartDto: CreateCartDto, @Request() req) {
+  async createCart(
+    @Body() createCartDto: CreateCartDto,
+    @Request() req,
+  ): Promise<ApiResponse<Cart | null>> {
     const userId = this.getUserId(req);
     if (!userId) {
-      throw new BadRequestException();
+      return createResponse<null>(null, 'Please log in', HttpStatus.NOT_FOUND);
     }
-    return this.cartService.createCart(createCartDto, userId);
+
+    try {
+      const cart = await this.cartService.createCart(createCartDto, userId);
+      if('message' in cart){
+        return createResponse<null>(
+          null,
+          cart.message,
+          HttpStatus.BAD_REQUEST
+        )
+      }
+      if (cart) {
+        return createResponse<Cart>(
+          cart,
+          'Added item successfully in the cart',
+          HttpStatus.OK,
+        );
+      } else {
+        return createResponse<null>(
+          null,
+          'Something went wrong for createing cart',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message
+      );
+    }
   }
 
   @Patch(':id')
@@ -51,13 +89,17 @@ export class CartController {
   }
 
   @Delete('remove-item/:id')
-  removeItemFromCart(@Param('id') id : string, @Request() req, @Body() removeCartDto : CreateCartDto){
+  removeItemFromCart(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() removeCartDto: CreateCartDto,
+  ) {
     const userId = this.getUserId(req);
     return this.cartService.removeItemFromCart(removeCartDto, +id, userId);
   }
 
   @Get()
-  findAllCarts(){
+  findAllCarts() {
     return this.cartService.findAllCarts();
   }
 }

@@ -1,26 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsIn, IsInt, IsNumber } from 'class-validator';
 
 export class CreateCartDto {
-  @IsNumber()
-  userId: number;
-
   @ApiProperty({
-    example: 'Product Number',
-    type: 'Number',
-    description: 'Please enter  product id',
+    example: '1',
+    type: 'number',
+    description: 'Please enter the product id',
   })
-  @IsNumber()
+  @IsInt()
   productId: number;
 
   @ApiProperty({
-    example: 'Quantity',
+    example: '1',
     type: 'number',
-    description: 'Please enter Quantity',
+    description: 'Please enter the quantity',
   })
-  @IsNumber()
+  @IsInt()
   quantity: number;
 
-  @IsNumber()
-  price: number;
 }

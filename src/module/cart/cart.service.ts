@@ -24,16 +24,16 @@ export class CartService {
   async createCart(
     createCartDto: CreateCartDto,
     userId: number,
-  ): Promise<Cart> {
+  ): Promise<Cart | {message : string}> {
     const product = await this.productService.findOne(createCartDto.productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
     if (product.stockQuantity < createCartDto.quantity) {
-      throw new UnauthorizedException(
-        `You cannot add ${createCartDto.quantity} items because there are only ${product.stockQuantity}
-         items available. Please enter a valid quantity.`,
-      );
+      return{
+        message : `You cannot add ${createCartDto.quantity} items because there are only ${product.stockQuantity}
+         items available. Please enter a valid quantity.`
+      }
     }
     let cart = await this.cartRepository.findOne({
       where: { userId },
