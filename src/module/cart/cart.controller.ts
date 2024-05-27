@@ -43,6 +43,7 @@ export class CartController {
     return await this.cartService.createCart(createCartDto, userId);
   }
 
+  @ApiBearerAuth('access token')
   @Patch(':id')
   updateCart(
     @Param('id') id: string,
@@ -51,6 +52,7 @@ export class CartController {
     return this.cartService.updateCart(+id, updateCartDto);
   }
 
+  @ApiBearerAuth('access token')
   @Delete(':id')
   async removeCart(
     @Param('id') id: string,
@@ -61,6 +63,7 @@ export class CartController {
   }
 
 
+  @ApiBearerAuth('access token')
   @Get()
   findAllCarts(@Request() req): Promise<ApiResponse<Cart[] | null>> {
     const userId = this.getUserId(req);
