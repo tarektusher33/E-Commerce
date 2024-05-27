@@ -179,7 +179,7 @@ export class CartService {
         where: { userId },
         relations: ['products'],
       });
-      if (carts) {
+      if (carts.length) {
         return createResponse<Cart[]>(
           carts,
           'Carts found Successfully',
