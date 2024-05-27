@@ -38,7 +38,6 @@ export class CartService {
       where: { userId, productId: createCartDto.productId},
       relations: ['products'],
     });
-    console.log(cart);
     if (cart) {
       const existingProduct = cart.products.find(
         (p) => p.id === createCartDto.productId,
