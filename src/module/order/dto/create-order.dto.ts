@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsPhoneNumber, IsString, Matches } from 'class-validator';
+import { User } from 'src/module/users/entities/user.entity';
+import { ManyToOne, OneToMany } from 'typeorm';
+import { OrderItem } from '../entities/order-item.entity';
 
 export class CreateOrderDto {
   @ApiProperty({
@@ -19,4 +22,6 @@ export class CreateOrderDto {
     message: 'Phone number must be a valid Bangladeshi mobile number',
   })
   phone: string;
+
+  
 }

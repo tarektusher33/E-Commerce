@@ -30,4 +30,7 @@ export class Order {
 
   @Column()
   phone : string
+
+  @OneToMany(()=> OrderItem, orderItem => orderItem.order )
+  items : OrderItem[];
 }

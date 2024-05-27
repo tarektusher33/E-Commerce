@@ -14,7 +14,11 @@ export class Cart {
 
   @Column()
   userId: number;
+ 
+  @Column()
+  productId : number;
 
+  
   @ManyToMany(() => Product, (product) => product.carts, { cascade: true })
   @JoinTable()
   products: Product[];

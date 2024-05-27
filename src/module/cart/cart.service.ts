@@ -35,9 +35,10 @@ export class CartService {
       };
     }
     let cart = await this.cartRepository.findOne({
-      where: { userId },
+      where: { userId, productId: createCartDto.productId},
       relations: ['products'],
     });
+    console.log(cart);
     if (cart) {
       const existingProduct = cart.products.find(
         (p) => p.id === createCartDto.productId,
@@ -46,7 +47,6 @@ export class CartService {
         existingProduct.stockQuantity += createCartDto.quantity;
         existingProduct.price += createCartDto.quantity * product.price;
       } else {
-        product.stockQuantity = createCartDto.quantity;
         cart.products.push(product);
       }
       cart.quantity += createCartDto.quantity;
@@ -54,7 +54,7 @@ export class CartService {
     } else {
       cart = new Cart();
       cart.userId = userId;
-      product.stockQuantity = createCartDto.quantity;
+      cart.productId = createCartDto.productId;
       cart.products = [product];
       cart.quantity = createCartDto.quantity;
       cart.price = createCartDto.quantity * product.price;

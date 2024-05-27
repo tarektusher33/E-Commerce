@@ -25,7 +25,7 @@ export class OrderController {
   ) {}
 
   @Post()
-  async create(
+  async createOrder(
     @Body() createOrderDto: CreateOrderDto,
     @Request() req,
   ): Promise<ApiResponse<Order | null>> {
@@ -37,37 +37,15 @@ export class OrderController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
-    try {
-      const order = await this.orderService.createOrder(createOrderDto, userId);
-      if('message' in order){
-        return createResponse<null> (
-          null,
-          order.message,
-          HttpStatus.BAD_REQUEST
-        )
-      }
-      if (order) {
-        return createResponse<Order>(
-          order,
-          'Order Placement Successfully',
-          HttpStatus.OK,
-        );
-      }
-    } catch (error) {
-      return createResponse<null>(
-        null,
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
-      )
-    }
+    return await this.orderService.createOrder(createOrderDto, userId);
   }
+
   @Get()
-  findAll(@Request() req) {
+  findAllOrders(@Request() req) {
     const userId = this.getUserId(req);
     return this.orderService.findAllOrders(userId);
   }
+
   getUserId(req) {
     const accessToken = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(accessToken);

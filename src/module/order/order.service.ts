@@ -17,7 +17,7 @@ export class OrderService {
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(Product)
-    private readonly productRepository : Repository<Product>,
+    private readonly productRepository: Repository<Product>,
     @InjectRepository(OrderItem)
     private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Cart)
@@ -27,19 +27,21 @@ export class OrderService {
   async createOrder(
     createOrderDto: CreateOrderDto,
     userId: number,
-  ): Promise<ApiResponse<Order | { message: string }>> {
+  ): Promise<ApiResponse<Order>> {
     const cartItems = await this.cartRepository.find({
       where: { userId },
       relations: ['products'],
     });
-
     if (cartItems.length === 0) {
-      return createResponse<null>(null, 'No items found in the cart', HttpStatus.NOT_FOUND);
+      return createResponse<null>(
+        null,
+        'No items found in the cart',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     let totalAmount = 0;
     const orderItems: OrderItem[] = [];
-
     for (const cartItem of cartItems) {
       for (const product of cartItem.products) {
         if (product.stockQuantity < cartItem.quantity) {
@@ -55,11 +57,9 @@ export class OrderService {
         orderItem.quantity = cartItem.quantity;
         orderItem.price = product.price * cartItem.quantity;
         orderItems.push(orderItem);
-
         // Decrease the product's stock quantity
         product.stockQuantity -= cartItem.quantity;
         await this.productRepository.save(product);
-
         totalAmount += orderItem.price;
       }
     }
@@ -72,12 +72,10 @@ export class OrderService {
     order.phone = createOrderDto.phone;
 
     try {
-      const savedOrder = await this.orderRepository.save(order);
-      // Clear the user's cart
+      await this.orderRepository.save(order);
       await this.cartRepository.delete({ userId });
-
       return createResponse<Order>(
-        savedOrder,
+        order,
         'Order placed successfully',
         HttpStatus.CREATED,
       );
@@ -91,18 +89,33 @@ export class OrderService {
     }
   }
 
-  async findAllOrders(userId: number): Promise<Order[] | {message : string}> {
-    const orders = await this.orderRepository.find({
-      where: { userId },
-      relations: ['orderItems', 'orderItems.product'],
-    });
+  async findAllOrders(userId: number): Promise<ApiResponse<Order[]>> {
+    try {
+      const orders = await this.orderRepository.find({
+        where: { userId },
+        relations: ['orderItems', 'orderItems.product'],
+      });
 
-    if (!orders.length) {
-      return{ 
-        message : 'No orders found for this user'
+      if (!orders.length) {
+        return createResponse<null>(
+          null,
+          'No orders found for this user',
+          HttpStatus.NOT_FOUND,
+        );
+      } else {
+        return createResponse<Order[]>(
+          orders,
+          'Orders found successfully',
+          HttpStatus.FOUND,
+        );
       }
+    } catch (error) {
+      return createResponse<null>(
+        null,
+        'Error occurred while placing order',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+      );
     }
-
-    return orders;
   }
 }
