@@ -24,4 +24,13 @@ export class Order {
 
   @Column()
   totalAmount: number;
+
+  @Column()
+  shippingAddress : string
+
+  @Column()
+  phone : string
+
+  @OneToMany(()=> OrderItem, orderItem => orderItem.order )
+  items : OrderItem[];
 }

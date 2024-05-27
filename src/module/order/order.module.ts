@@ -7,10 +7,11 @@ import { OrderItem } from './entities/order-item.entity';
 import { Cart } from '../cart/entities/cart.entity';
 import { AuthModule } from '../auth/auth.module';
 import { ProductModule } from '../product/product.module';
+import { Product } from '../product/entities/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Cart]),
+    TypeOrmModule.forFeature([Order, OrderItem, Cart, Product]),
     AuthModule,
     ProductModule,
   ],
