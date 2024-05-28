@@ -22,6 +22,9 @@ export class Product {
   @Column()
   price: number;
 
+  @Column({ nullable: true })
+  discountPrice : number
+
   @Column()
   stockQuantity: number;
 

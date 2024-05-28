@@ -56,6 +56,7 @@ export class OrderService {
         orderItem.product = product;
         orderItem.quantity = cartItem.quantity;
         orderItem.price = product.price * cartItem.quantity;
+        orderItem.discountPrice += product.discountPrice;
         orderItems.push(orderItem);
         // Decrease the product's stock quantity
         product.stockQuantity -= cartItem.quantity;

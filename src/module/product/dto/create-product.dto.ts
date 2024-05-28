@@ -24,12 +24,11 @@ export class CreateProductDto {
   @ApiProperty({
     example: '0',
     type: 'number',
-    description: 'Please enter discount',
+    description: 'Please enter discount price',
   })
   @IsNumber()
-  @IsOptional()
-  @Transform(({ value }) => value ?? 0)
-  discount: number;
+  @Transform (({value}) => value ?? 0)
+  discountPrice: number;
 
   @ApiProperty({
     example: '0',
