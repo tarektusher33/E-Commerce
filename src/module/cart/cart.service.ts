@@ -65,6 +65,7 @@ export class CartService {
       cart.products = [product];
       cart.quantity = createCartDto.quantity;
       cart.price = createCartDto.quantity * product.price;
+      cart.discountPrice = createCartDto.quantity * product.discountPrice;
     }
     try {
       await this.cartRepository.save(cart);

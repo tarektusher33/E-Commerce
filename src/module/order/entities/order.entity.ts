@@ -23,14 +23,23 @@ export class Order {
   orderItems: OrderItem[];
 
   @Column()
-  totalAmount: number;
+  totalPrice: number;
 
   @Column()
-  shippingAddress : string
+  totalDiscount: number;
 
   @Column()
-  phone : string
+  totalPriceAfterDiscount : number;
 
-  @OneToMany(()=> OrderItem, orderItem => orderItem.order )
-  items : OrderItem[];
+  @Column()
+  orderDate: Date;
+
+  @Column()
+  shippingAddress: string;
+
+  @Column()
+  phone: string;
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  items: OrderItem[];
 }
