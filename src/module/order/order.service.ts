@@ -32,7 +32,6 @@ export class OrderService {
       where: { userId },
       relations: ['products'],
     });
-  
     if (cartItems.length === 0) {
       return createResponse<null>(
         null,
@@ -40,12 +39,10 @@ export class OrderService {
         HttpStatus.NOT_FOUND,
       );
     }
-  
     try {
       let totalAmount = 0;
       let totalDiscount = 0;
       const orderItems: OrderItem[] = [];
-  
       for (const cartItem of cartItems) {
         for (const product of cartItem.products) {
           if (product.stockQuantity < cartItem.quantity) {
@@ -55,36 +52,29 @@ export class OrderService {
               HttpStatus.BAD_REQUEST,
             );
           }
-  
           const orderItem = new OrderItem();
           orderItem.product = product;
           orderItem.quantity = cartItem.quantity;
           orderItem.price = product.price * cartItem.quantity;
           orderItem.discountPrice = (product.discountPrice || 0) * cartItem.quantity;
-  
           orderItems.push(orderItem);
-  
           product.stockQuantity -= cartItem.quantity;
           await this.productRepository.save(product);
-  
           totalAmount += orderItem.price;
           totalDiscount += orderItem.discountPrice;
         }
       }
-  
       const order = new Order();
       order.userId = userId;
       order.orderItems = orderItems;
       order.totalPrice = totalAmount;
-      order.totalDiscount = totalDiscount; // Ensure totalDiscount is set
-      order.totalPriceAfterDiscount = totalAmount - totalDiscount; // Calculate totalPriceAfterDiscount
+      order.totalDiscount = totalDiscount;
+      order.totalPriceAfterDiscount = totalAmount - totalDiscount;
       order.orderDate = new Date();
       order.shippingAddress = createOrderDto.shippingAddress;
       order.phone = createOrderDto.phone;
-  
       await this.orderRepository.save(order);
       await this.cartRepository.delete({ userId });
-  
       return createResponse<Order>(
         order,
         'Order placed successfully',
