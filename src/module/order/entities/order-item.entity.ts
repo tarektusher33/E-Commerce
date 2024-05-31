@@ -18,4 +18,7 @@ export class OrderItem {
 
   @Column()
   price: number;
+
+  @Column()
+  discountPrice : number
 }

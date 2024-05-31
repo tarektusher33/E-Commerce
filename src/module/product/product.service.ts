@@ -28,10 +28,20 @@ export class ProductService {
     if (!createProductDto.price || createProductDto.price <= 0) {
       throw new BadRequestException('Price must be greater than zero');
     }
+    if (!createProductDto.discountPrice || createProductDto.discountPrice < 0) {
+      throw new BadRequestException('Price must be greater than zero');
+    }
     if (!createProductDto.stockQuantity || createProductDto.stockQuantity < 0) {
       throw new BadRequestException('Quantity must be zero or greater');
     }
-    const product = this.productRepository.create({ ...createProductDto, user });
+    const product : Product = new Product();
+    product.productName = createProductDto.productName;
+    product.price = createProductDto.price;
+    product.discountPrice = createProductDto.discountPrice;
+    product.category = createProductDto.category;
+    product.description = createProductDto.description;
+    product.stockQuantity = createProductDto.stockQuantity;
+    product.user = user;
     return this.productRepository.save(product);
   }
   

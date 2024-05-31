@@ -23,9 +23,12 @@ export class Cart {
   @JoinTable()
   products: Product[];
 
-  @Column()
+  @Column({default : 0})
   quantity: number;
 
-  @Column()
+  @Column({default : 0})
   price: number;
+
+  @Column({default : 0})
+  discountPrice : number;
 }
