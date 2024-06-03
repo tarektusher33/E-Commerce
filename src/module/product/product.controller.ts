@@ -46,19 +46,7 @@ export class ProductController {
         createProductDto,
         userId,
       );
-      if (product) {
-        return createResponse<Product>(
-          product,
-          'Create Product Successfully',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      return product;
     } catch (error) {
       return createResponse<null>(
         null,
@@ -69,6 +57,7 @@ export class ProductController {
     }
   }
 
+  @ApiBearerAuth('access-token')
   @Get()
   getProducts(
     @Query('page') page: number = 1,
@@ -96,29 +85,8 @@ export class ProductController {
     if (!userId) {
       throw new UnauthorizedException();
     }
-    try {
-      const products = await this.productService.getProductsByUserId(userId);
-      if (products) {
-        return createResponse<Product[]>(
-          products,
-          'Products are found',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
-      return createResponse<null>(
-        null,
-        'Error occurred while getting product',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
-      );
-    }
+    const products = await this.productService.getUserBasedProducts(userId);
+    return products;
   }
 
   @Get(':id')
@@ -158,32 +126,15 @@ export class ProductController {
     const token = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(token);
     if (!userId) {
-      throw new UnauthorizedException();
-    }
-    try {
-      console.log(userId, updateProductDto, id);
-      const product = await this.productService.update(+id, updateProductDto);
-      if (product) {
-        return createResponse<Product>(
-          product,
-          'Update Successfully',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
       return createResponse<null>(
         null,
-        'Error occurred while updating product',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
+        'User not Found',
+        HttpStatus.NOT_FOUND,
+        `The user with the provided ID ${userId} does not exist in our records`,
       );
     }
+    const product = await this.productService.update(+id, updateProductDto);
+    return product;
   }
 
   @ApiBearerAuth('access-token')
@@ -194,28 +145,7 @@ export class ProductController {
   ): Promise<ApiResponse<Product | null>> {
     const accessToken = await this.authService.extractAccessToken(req);
     const userId = await this.authService.getUserIdFromAccessToken(accessToken);
-    try {
-      const rmvProduct = await this.productService.remove(+id, userId);
-      if (rmvProduct) {
-        return createResponse<Product>(
-          rmvProduct,
-          'Product deleted successfully',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
-      return createResponse<null>(
-        null,
-        'Error occurred while updating product',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
-      );
-    }
+    const rmvProduct = await this.productService.remove(+id, userId);
+    return rmvProduct;
   }
 }
