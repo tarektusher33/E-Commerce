@@ -41,7 +41,7 @@ export class OrderController {
   }
 
   @Get()
-  findAllOrders(@Request() req) {
+  findAllOrders(@Request() req): Promise<ApiResponse<Order[]>> {
     const userId = this.getUserId(req);
     return this.orderService.findAllOrders(userId);
   }
