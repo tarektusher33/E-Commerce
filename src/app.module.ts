@@ -12,7 +12,8 @@ import { PasswordModule } from './module/password/password.module';
 import { CartModule } from './module/cart/cart.module';
 import { OrderModule } from './module/order/order.module';
 import { databaseConfig } from './config/database.config';
-
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RemoveSensitiveUserInfoInterceptor } from './interceptors/filter-user-response.interceptor';
 
 @Module({
   imports: [
@@ -20,20 +21,27 @@ import { databaseConfig } from './config/database.config';
     AuthModule,
     ConfigModule.forRoot({
       envFilePath: '.local.env',
-      isGlobal : true,
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => databaseConfig(configService),
+      useFactory: (configService: ConfigService) =>
+        databaseConfig(configService),
       inject: [ConfigService],
     }),
     UsersModule,
     ProductModule,
     PasswordModule,
     CartModule,
-    OrderModule
+    OrderModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RemoveSensitiveUserInfoInterceptor,
+    },
+  ],
 })
 export class AppModule {}
