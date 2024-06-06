@@ -10,6 +10,8 @@ import {
   UnauthorizedException,
   Query,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -20,6 +22,8 @@ import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { createResponse } from 'src/utils/response.util';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterConfig } from 'src/config/multer.config';
 
 @Controller('products')
 @ApiTags('Product')
@@ -28,24 +32,37 @@ export class ProductController {
   constructor(
     private readonly productService: ProductService,
     private readonly authService: AuthService,
+    private readonly multerConfig: MulterConfig,
   ) {}
 
   @ApiBearerAuth('access-token')
+  @UseInterceptors(FileInterceptor('file', new MulterConfig().createMulterOptions()))
   @Post()
   async createProduct(
     @Body() createProductDto: CreateProductDto,
     @Request() req,
+    @UploadedFile() file: Express.Multer.File
   ): Promise<ApiResponse<Product | null>> {
     const token = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(token);
     if (!userId) {
       throw new UnauthorizedException();
     }
+    if (!file) {
+      return createResponse<null>(
+        null,
+        'No file uploaded',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
+      const imageUrl = file.path
       const product = await this.productService.createProduct(
         createProductDto,
         userId,
+        imageUrl
       );
+
       return product;
     } catch (error) {
       return createResponse<null>(

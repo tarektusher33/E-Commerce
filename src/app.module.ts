@@ -14,6 +14,8 @@ import { OrderModule } from './module/order/order.module';
 import { databaseConfig } from './config/database.config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RemoveSensitiveUserInfoInterceptor } from './interceptors/filter-user-response.interceptor';
+import { MulterModule } from '@nestjs/platform-express';
+import { MulterConfig } from './config/multer.config';
 
 @Module({
   imports: [
@@ -29,6 +31,9 @@ import { RemoveSensitiveUserInfoInterceptor } from './interceptors/filter-user-r
         databaseConfig(configService),
       inject: [ConfigService],
     }),
+    MulterModule.registerAsync({
+      useClass : MulterConfig
+    }), 
     UsersModule,
     ProductModule,
     PasswordModule,

@@ -28,12 +28,16 @@ export class Product {
   @Column()
   stockQuantity: number;
 
-  @Column({ nullable: true })
+  @Column()
   description: string;
 
   @Column({ nullable: true })
   category: string;
 
+  @Column({ nullable : true})
+  imageUrl: string;
+
+  
   @ManyToOne(() => User, (user) => user.products)
   user: User;
 

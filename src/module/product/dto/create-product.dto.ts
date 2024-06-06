@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductDto {
@@ -19,6 +19,7 @@ export class CreateProductDto {
     description: 'Please enter product price',
   })
   @IsNumber()
+  @Type(() => Number)
   price: number;
 
   @ApiProperty({
@@ -28,6 +29,7 @@ export class CreateProductDto {
   })
   @IsNumber()
   @Transform (({value}) => value ?? 0)
+  @Type(() => Number)
   discountPrice: number;
 
   @ApiProperty({
@@ -36,6 +38,7 @@ export class CreateProductDto {
     description: 'Please enter stock quantity',
   })
   @IsNumber()
+  @Type(() => Number)
   stockQuantity: number;
 
   @ApiProperty({

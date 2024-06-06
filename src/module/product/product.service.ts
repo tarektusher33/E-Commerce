@@ -29,6 +29,7 @@ export class ProductService {
   async createProduct(
     createProductDto: CreateProductDto,
     userId: number,
+    imageUrl: string,
   ): Promise<ApiResponse<Product | null>> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
@@ -85,6 +86,7 @@ export class ProductService {
     product.category = createProductDto.category;
     product.description = createProductDto.description;
     product.stockQuantity = createProductDto.stockQuantity;
+    product.imageUrl = imageUrl;
     product.user = user;
     await this.productRepository.save(product);
     return createResponse<Product>(
