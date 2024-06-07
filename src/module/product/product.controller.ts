@@ -18,7 +18,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { GetProductsDto } from './dto/get-products-filter.dto';
-import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { createResponse } from 'src/utils/response.util';
@@ -37,6 +37,8 @@ export class ProductController {
 
   @ApiBearerAuth('access-token')
   @UseInterceptors(FileInterceptor('file', new MulterConfig().createMulterOptions()))
+  @ApiOperation({ summary: 'Create a Product' })
+  @ApiConsumes("multipart/form-data")
   @Post()
   async createProduct(
     @Body() createProductDto: CreateProductDto,
