@@ -10,16 +10,22 @@ import {
   UnauthorizedException,
   Query,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { GetProductsDto } from './dto/get-products-filter.dto';
-import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { createResponse } from 'src/utils/response.util';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterConfig } from 'src/config/multer.config';
+import { Throttle } from '@nestjs/throttler';
+import { ProductQueryDto } from './dto/product-query.dto';
 
 @Controller('products')
 @ApiTags('Product')
@@ -28,37 +34,40 @@ export class ProductController {
   constructor(
     private readonly productService: ProductService,
     private readonly authService: AuthService,
+    private readonly multerConfig: MulterConfig,
   ) {}
 
   @ApiBearerAuth('access-token')
+  @UseInterceptors(FileInterceptor('file', new MulterConfig().createMulterOptions()))
+  @ApiOperation({ summary: 'Create a Product' })
+  @ApiConsumes("multipart/form-data")
   @Post()
   async createProduct(
     @Body() createProductDto: CreateProductDto,
     @Request() req,
+    @UploadedFile() file: Express.Multer.File
   ): Promise<ApiResponse<Product | null>> {
     const token = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(token);
     if (!userId) {
       throw new UnauthorizedException();
     }
+    if (!file) {
+      return createResponse<null>(
+        null,
+        'No file uploaded',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
+      const imageUrl = file.path
       const product = await this.productService.createProduct(
         createProductDto,
         userId,
+        imageUrl
       );
-      if (product) {
-        return createResponse<Product>(
-          product,
-          'Create Product Successfully',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+
+      return product;
     } catch (error) {
       return createResponse<null>(
         null,
@@ -69,22 +78,14 @@ export class ProductController {
     }
   }
 
+  @ApiBearerAuth('access-token')
   @Get()
-  getProducts(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query() getProductsDto: GetProductsDto,
-  ) {
-    if (Object.keys(getProductsDto).length) {
-      return this.productService.getProductsWithFilter(
-        getProductsDto,
-        page,
-        limit,
-      );
-    } else {
-      return this.productService.getProducts();
-    }
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  async findAll(@Query()productQueryDto:ProductQueryDto):Promise<{data:Product[],total:number}> {
+    const [products,total]= await this.productService.findAllProducts(productQueryDto);
+    return {data:products,total};
   }
+
 
   @ApiBearerAuth('access-token')
   @Get('user-based')
@@ -96,29 +97,8 @@ export class ProductController {
     if (!userId) {
       throw new UnauthorizedException();
     }
-    try {
-      const products = await this.productService.getProductsByUserId(userId);
-      if (products) {
-        return createResponse<Product[]>(
-          products,
-          'Products are found',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
-      return createResponse<null>(
-        null,
-        'Error occurred while getting product',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
-      );
-    }
+    const products = await this.productService.getUserBasedProducts(userId);
+    return products;
   }
 
   @Get(':id')
@@ -158,32 +138,15 @@ export class ProductController {
     const token = this.authService.extractAccessToken(req);
     const userId = this.authService.getUserIdFromAccessToken(token);
     if (!userId) {
-      throw new UnauthorizedException();
-    }
-    try {
-      console.log(userId, updateProductDto, id);
-      const product = await this.productService.update(+id, updateProductDto);
-      if (product) {
-        return createResponse<Product>(
-          product,
-          'Update Successfully',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
       return createResponse<null>(
         null,
-        'Error occurred while updating product',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
+        'User not Found',
+        HttpStatus.NOT_FOUND,
+        `The user with the provided ID ${userId} does not exist in our records`,
       );
     }
+    const product = await this.productService.update(+id, updateProductDto);
+    return product;
   }
 
   @ApiBearerAuth('access-token')
@@ -194,28 +157,7 @@ export class ProductController {
   ): Promise<ApiResponse<Product | null>> {
     const accessToken = await this.authService.extractAccessToken(req);
     const userId = await this.authService.getUserIdFromAccessToken(accessToken);
-    try {
-      const rmvProduct = await this.productService.remove(+id, userId);
-      if (rmvProduct) {
-        return createResponse<Product>(
-          rmvProduct,
-          'Product deleted successfully',
-          HttpStatus.OK,
-        );
-      } else {
-        return createResponse<null>(
-          null,
-          'Something went wrong',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
-      return createResponse<null>(
-        null,
-        'Error occurred while updating product',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        error.message,
-      );
-    }
+    const rmvProduct = await this.productService.remove(+id, userId);
+    return rmvProduct;
   }
 }

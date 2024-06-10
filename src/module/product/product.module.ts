@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { AuthMiddleware } from '../auth/auth.middleware';
+import { MulterModule } from '@nestjs/platform-express';
+import { MulterConfig } from 'src/config/multer.config';
 
 
 @Module({
@@ -20,11 +22,14 @@ import { AuthMiddleware } from '../auth/auth.middleware';
       envFilePath: '.local.env',
       isGlobal: true,
     }),
+    MulterModule.registerAsync({
+      useClass: MulterConfig,
+    }),
     AuthModule,
     UsersModule
   ],
   controllers: [ProductController],
-  providers: [ProductService],
+  providers: [ProductService, MulterConfig],
   exports: [ProductService],
 })
 export class ProductModule implements NestModule {

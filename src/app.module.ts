@@ -12,7 +12,11 @@ import { PasswordModule } from './module/password/password.module';
 import { CartModule } from './module/cart/cart.module';
 import { OrderModule } from './module/order/order.module';
 import { databaseConfig } from './config/database.config';
-
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RemoveSensitiveUserInfoInterceptor } from './interceptors/filter-user-response.interceptor';
+import { MulterModule } from '@nestjs/platform-express';
+import { MulterConfig } from './config/multer.config';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -20,20 +24,30 @@ import { databaseConfig } from './config/database.config';
     AuthModule,
     ConfigModule.forRoot({
       envFilePath: '.local.env',
-      isGlobal : true,
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => databaseConfig(configService),
+      useFactory: (configService: ConfigService) =>
+        databaseConfig(configService),
       inject: [ConfigService],
     }),
+    MulterModule.registerAsync({
+      useClass : MulterConfig
+    }), 
     UsersModule,
     ProductModule,
     PasswordModule,
     CartModule,
-    OrderModule
+    OrderModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RemoveSensitiveUserInfoInterceptor,
+    },
+  ],
 })
 export class AppModule {}
