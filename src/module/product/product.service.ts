@@ -9,13 +9,14 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryBuilder, Repository } from 'typeorm';
 import { GetProductsDto } from './dto/get-products-filter.dto';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { User } from '../users/entities/user.entity';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { createResponse } from 'src/utils/response.util';
 import { create } from 'domain';
+import { ProductQueryDto } from './dto/product-query.dto';
 
 @Injectable()
 export class ProductService {
@@ -100,42 +101,34 @@ export class ProductService {
     return await this.productRepository.find();
   }
 
-  async getProductsWithFilter(
-    getProductsDto: GetProductsDto,
-    page: number = 1,
-    limit: number = 10,
-  ): Promise<Pagination<Product>> {
-    const { productName, description, category, minPrice, maxPrice } =
-      getProductsDto;
-    let query = this.productRepository.createQueryBuilder('product');
-    if (productName) {
-      const trimmedProductName = productName.trim();
-      query = query.andWhere(
-        'LOWER(product.productName) LIKE LOWER(:productName)',
-        { productName: `%${trimmedProductName}%` },
-      );
+  async findAllProducts(
+    productQueryDto:ProductQueryDto
+  ): Promise<any> {
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
+    if (productQueryDto.category) {
+      queryBuilder.andWhere('product.category ILIKE  :category', { category: `%${productQueryDto.category }%`},);
     }
-    if (description) {
-      const trimmedDescription = description.trim();
-      query = query.andWhere(
-        'LOWER(product.description) LIKE LOWER(:description)',
-        { description: `%${trimmedDescription}%` },
-      );
+    if (productQueryDto.discountPrice) {
+      queryBuilder.andWhere('product.discount = :discount', { discount: productQueryDto.discountPrice },);
+    }
+    if (productQueryDto.minPrice) {
+      queryBuilder.andWhere('product.price >= :minPrice', { minPrice: productQueryDto.minPrice });
+    }
+    if (productQueryDto.maxPrice) {
+      queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice: productQueryDto.maxPrice });
+    }
+    if (productQueryDto.productName) {
+      queryBuilder.andWhere('product.productName ILIKE :searchName', { searchName: `%${productQueryDto.productName}%` });
     }
 
-    if (category) {
-      query = query.andWhere('LOWER(product.category) = LOWER(:category)', {
-        category,
-      });
+    if (productQueryDto.description) {
+      queryBuilder.andWhere('product.description ILIKE :searchDescription', { searchDescription: `%${productQueryDto.description}%` });
     }
-    if (minPrice !== undefined) {
-      query = query.andWhere('product.price >= :minPrice', { minPrice });
-    }
-    if (maxPrice !== undefined) {
-      query = query.andWhere('product.price <= :maxPrice', { maxPrice });
-    }
+    queryBuilder.orderBy('product.price', productQueryDto.sortDirection);
+  queryBuilder.offset((productQueryDto.page - 1) * productQueryDto.limit).limit(productQueryDto.limit);
 
-    return paginate<Product>(query, { page, limit });
+  const [products, total] = await queryBuilder.getManyAndCount();
+  return [products, total];
   }
 
   async getUserBasedProducts(

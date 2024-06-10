@@ -16,6 +16,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RemoveSensitiveUserInfoInterceptor } from './interceptors/filter-user-response.interceptor';
 import { MulterModule } from '@nestjs/platform-express';
 import { MulterConfig } from './config/multer.config';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [

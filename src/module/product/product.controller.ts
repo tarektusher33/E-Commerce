@@ -24,6 +24,8 @@ import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { createResponse } from 'src/utils/response.util';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterConfig } from 'src/config/multer.config';
+import { Throttle } from '@nestjs/throttler';
+import { ProductQueryDto } from './dto/product-query.dto';
 
 @Controller('products')
 @ApiTags('Product')
@@ -78,21 +80,12 @@ export class ProductController {
 
   @ApiBearerAuth('access-token')
   @Get()
-  getProducts(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query() getProductsDto: GetProductsDto,
-  ) {
-    if (Object.keys(getProductsDto).length) {
-      return this.productService.getProductsWithFilter(
-        getProductsDto,
-        page,
-        limit,
-      );
-    } else {
-      return this.productService.getProducts();
-    }
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  async findAll(@Query()productQueryDto:ProductQueryDto):Promise<{data:Product[],total:number}> {
+    const [products,total]= await this.productService.findAllProducts(productQueryDto);
+    return {data:products,total};
   }
+
 
   @ApiBearerAuth('access-token')
   @Get('user-based')

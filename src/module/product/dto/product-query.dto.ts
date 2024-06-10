@@ -8,7 +8,7 @@ export class ProductQueryDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
-    name: string;
+    productName: string;
 
     @ApiProperty({ required: false })
     @IsOptional()
@@ -35,7 +35,7 @@ export class ProductQueryDto {
     @IsOptional()
     @IsInt()
     @Type(() => Number)
-    discount: number;
+    discountPrice: number;
 
     @ApiProperty({ required: false , type: "number" })
     @IsOptional()
