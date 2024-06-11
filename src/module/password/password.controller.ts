@@ -10,6 +10,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { PasswordEntityDto } from './entities/password.entity';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('auth')
 export class PasswordController {
@@ -20,6 +21,7 @@ export class PasswordController {
   ) {}
 
   @Post('forgot-password')
+  @ApiOperation({summary : 'Forgot password'})
   async forgotPassword(@Body('email') email: string) {
     const token = Math.random().toString(20).substr(2, 12);
     await this.passwordService.forgotPassword({ email, token });
@@ -38,6 +40,7 @@ export class PasswordController {
   }
 
   @Post('reset-password')
+  @ApiOperation({summary : 'Reset password'})
   async resetPassword(
     @Body() body: { token: string; password: string; confirmPassword: string },
   ) {
