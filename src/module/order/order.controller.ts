@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { Order } from './entities/order.entity';
@@ -25,6 +25,7 @@ export class OrderController {
   ) {}
 
   @Post()
+  @ApiOperation({summary : 'Create a Order'})
   async createOrder(
     @Body() createOrderDto: CreateOrderDto,
     @Request() req,
@@ -41,6 +42,7 @@ export class OrderController {
   }
 
   @Get()
+  @ApiOperation({summary : 'Find all order'})
   findAllOrders(@Request() req): Promise<ApiResponse<Order[]>> {
     const userId = this.getUserId(req);
     return this.orderService.findAllOrders(userId);

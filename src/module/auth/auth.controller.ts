@@ -6,7 +6,7 @@ import {
   UseGuards,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateSignUpDto } from './dto/signup-cart.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -21,6 +21,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
+  @ApiOperation({summary : 'User sign up'})
   async signUpUser(
     @Body() createSignUpDto: CreateSignUpDto,
     @Request() req,
@@ -52,6 +53,8 @@ export class AuthController {
   
   @Post('/login')
   @UseGuards(AuthGuard('local'))
+  @ApiOperation({summary : 'User log in'})
+
   async login(
     @Request() req: any,
     @Body() createLogInDto: CreateLogInDto,

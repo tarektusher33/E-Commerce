@@ -14,7 +14,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { User } from './entities/user.entity';
@@ -30,11 +30,13 @@ export class UsersController {
 
   create(@Body() createUserDto: CreateUserDto, @Request() req) {}
 
+  @ApiOperation({summary : 'Find all user'})
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
+  @ApiOperation({summary : 'Find a single user'})
   @Get(':id')
   async findOne(
     @Param('id') id: string,
@@ -70,6 +72,7 @@ export class UsersController {
     }
   }
 
+  @ApiOperation({summary : 'Update a  user'})
   @Patch(':id')
   async updateUser(
     @Param('id') id: string,
