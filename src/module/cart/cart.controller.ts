@@ -12,7 +12,7 @@ import {
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { Cart } from './entities/cart.entity';
@@ -34,6 +34,7 @@ export class CartController {
   }
 
   @ApiBearerAuth('access token')
+  @ApiOperation({summary : 'Create a cart'})
   @Post()
   async createCart(
     @Body() createCartDto: CreateCartDto,
@@ -45,6 +46,7 @@ export class CartController {
 
   @ApiBearerAuth('access token')
   @Patch(':id')
+  @ApiOperation({summary : 'Update a cart'})
   updateCart(
     @Param('id') id: string,
     @Body() updateCartDto: UpdateCartDto,
@@ -54,6 +56,7 @@ export class CartController {
 
   @ApiBearerAuth('access token')
   @Delete(':id')
+  @ApiOperation({summary : 'Remove a cart'})
   async removeCart(
     @Param('id') id: string,
     @Request() req,
@@ -64,6 +67,7 @@ export class CartController {
 
 
   @ApiBearerAuth('access token')
+  @ApiOperation({summary : 'Find all cart'})
   @Get()
   findAllCarts(@Request() req): Promise<ApiResponse<Cart[] | null>> {
     const userId = this.getUserId(req);
