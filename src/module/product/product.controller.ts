@@ -80,6 +80,7 @@ export class ProductController {
 
   @ApiBearerAuth('access-token')
   @Get()
+  @ApiOperation({ summary: 'Search Product' })
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   async findAll(@Query()productQueryDto:ProductQueryDto):Promise<{data:Product[],total:number}> {
     const [products,total]= await this.productService.findAllProducts(productQueryDto);
@@ -89,6 +90,7 @@ export class ProductController {
 
   @ApiBearerAuth('access-token')
   @Get('user-based')
+  @ApiOperation({ summary: 'Get user based product' })
   async getUserBasedProducts(
     @Request() req: any,
   ): Promise<ApiResponse<Product[] | null>> {
@@ -102,6 +104,7 @@ export class ProductController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get single product' })
   async findOne(@Param('id') id: string): Promise<ApiResponse<Product | null>> {
     try {
       const product = await this.productService.findOne(+id);
@@ -130,6 +133,7 @@ export class ProductController {
 
   @ApiBearerAuth('access-token')
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a Product' })
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -150,6 +154,7 @@ export class ProductController {
   }
 
   @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Delete a Product' })
   @Delete(':id')
   async remove(
     @Param('id') id: string,
