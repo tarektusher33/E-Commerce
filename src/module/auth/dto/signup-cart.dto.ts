@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { IsCustomEmail } from 'src/common/validators/custom-email.validator';
+import { UserRole } from 'src/utils/user-role.enum';
 
 export class CreateSignUpDto {
   @ApiProperty({
@@ -38,10 +39,10 @@ export class CreateSignUpDto {
 
   @ApiProperty({
     example: 'user or admin',
-    type: 'string',
+    enum: UserRole,
     description: 'Please enter your role',
   })
-  @IsString() 
-  @Transform(({ value }) => value ?? 'user')
-  role: string;
+  @IsEnum(UserRole)
+  @Transform(({ value }) => value ?? UserRole.USER)
+  role: UserRole;
 }
