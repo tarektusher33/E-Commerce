@@ -56,7 +56,9 @@ export class CreateSignUpDto {
     enum: UserRole,
     description: 'Please enter your role',
   })
-  @IsEnum(UserRole)
-  @Transform(({ value }) => value ?? UserRole.USER)
+  @Transform(({ value }) => value || UserRole.USER)
+  @IsEnum(UserRole, {
+    message: 'role must be one of the following values: user, admin',
+  })
   role: UserRole;
 }
