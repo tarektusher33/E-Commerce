@@ -1,14 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
 import { IsCustomEmail } from 'src/common/validators/custom-email.validator';
 import { UserRole } from 'src/utils/user-role.enum';
 
 export class CreateSignUpDto {
   @ApiProperty({
-    example: 'Tarek ',
+    example: 'Tarek',
     type: 'string',
     description: 'Please enter your first name',
+  })
+  @Matches(/^[a-zA-Z][a-zA-Z0-9]*$/, {
+    message: 'First name must start with a letter and must not contain any special characters',
   })
   @IsString()
   firstName: string;
@@ -17,6 +20,9 @@ export class CreateSignUpDto {
     example: 'Rahman',
     type: 'string',
     description: 'Please enter your last name',
+  })
+  @Matches(/^[a-zA-Z][a-zA-Z0-9]*$/, {
+    message: 'Last name must start with a letter and must not contain any special characters',
   })
   @IsString()
   @IsOptional()
