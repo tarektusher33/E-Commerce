@@ -14,6 +14,7 @@ import { CreateSignUpDto } from './dto/signup-cart.dto';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { UserRole } from 'src/utils/user-role.enum';
 
 @Injectable()
 export class AuthService {
@@ -45,6 +46,7 @@ export class AuthService {
       const hashPassword = await bcrypt.hash(password, salt);
       user.password = hashPassword;
       user.role = createSignUpDto.role;
+      if(!user.role) user.role = UserRole.USER;
       await this.userRepository.save(user);
       return user;
     }
